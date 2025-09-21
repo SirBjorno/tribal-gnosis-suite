@@ -1,5 +1,5 @@
-// FIX: To avoid conflicts with global DOM types, Request and Response are no longer imported directly.
-import express, { Express } from 'express';
+// FIX: Import Request and Response types from express with aliases to avoid conflicts with global DOM types.
+import express, { Express, Request as ExpressRequest, Response as ExpressResponse } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { GoogleGenAI, Type } from "@google/genai";
@@ -98,8 +98,8 @@ const tenantData: Record<string, any> = {
 };
 
 // --- Knowledge Bank API Endpoints ---
-// FIX: Correctly typed the req and res parameters to use express.Request and express.Response to avoid type conflicts.
-app.get('/api/knowledge-bank/:tenantId', (req: express.Request, res: express.Response) => {
+// FIX: Correctly typed the req and res parameters to use aliased express types to avoid type conflicts.
+app.get('/api/knowledge-bank/:tenantId', (req: ExpressRequest, res: ExpressResponse) => {
     const { tenantId } = req.params;
     console.log(`[GET /api/knowledge-bank/${tenantId}] - Request received.`);
     let knowledgeBank = tenantData[tenantId];
@@ -111,8 +111,8 @@ app.get('/api/knowledge-bank/:tenantId', (req: express.Request, res: express.Res
     res.status(200).json(knowledgeBank);
 });
 
-// FIX: Correctly typed the req and res parameters to use express.Request and express.Response to avoid type conflicts.
-app.post('/api/knowledge-bank/:tenantId', (req: express.Request, res: express.Response) => {
+// FIX: Correctly typed the req and res parameters to use aliased express types to avoid type conflicts.
+app.post('/api/knowledge-bank/:tenantId', (req: ExpressRequest, res: ExpressResponse) => {
     const { tenantId } = req.params;
     const newItem = req.body as KnowledgeBankItem;
     console.log(`[POST /api/knowledge-bank/${tenantId}] - Request to add item: ${newItem.id}`);
@@ -128,8 +128,8 @@ app.post('/api/knowledge-bank/:tenantId', (req: express.Request, res: express.Re
 
 // --- Secure Gemini API Endpoints ---
 
-// FIX: Correctly typed the req and res parameters to use express.Request and express.Response to avoid type conflicts.
-app.post('/api/analyze', async (req: express.Request, res: express.Response) => {
+// FIX: Correctly typed the req and res parameters to use aliased express types to avoid type conflicts.
+app.post('/api/analyze', async (req: ExpressRequest, res: ExpressResponse) => {
     try {
         const { transcript } = req.body;
         if (!transcript) return res.status(400).send('Transcript is required.');
@@ -154,8 +154,8 @@ app.post('/api/analyze', async (req: express.Request, res: express.Response) => 
     }
 });
 
-// FIX: Correctly typed the req and res parameters to use express.Request and express.Response to avoid type conflicts.
-app.post('/api/generate-detailed-transcript', async (req: express.Request, res: express.Response) => {
+// FIX: Correctly typed the req and res parameters to use aliased express types to avoid type conflicts.
+app.post('/api/generate-detailed-transcript', async (req: ExpressRequest, res: ExpressResponse) => {
     try {
         const { rawTranscript } = req.body;
         if (!rawTranscript) return res.status(400).send('Raw transcript is required.');
@@ -180,8 +180,8 @@ app.post('/api/generate-detailed-transcript', async (req: express.Request, res: 
     }
 });
 
-// FIX: Correctly typed the req and res parameters to use express.Request and express.Response to avoid type conflicts.
-app.post('/api/search-public-solutions', async (req: express.Request, res: express.Response) => {
+// FIX: Correctly typed the req and res parameters to use aliased express types to avoid type conflicts.
+app.post('/api/search-public-solutions', async (req: ExpressRequest, res: ExpressResponse) => {
     try {
         const { query, knowledgeBank } = req.body;
         if (!query || !knowledgeBank) return res.status(400).send('Query and knowledge bank are required.');
