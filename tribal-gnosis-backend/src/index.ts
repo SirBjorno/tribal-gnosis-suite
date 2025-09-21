@@ -1,5 +1,5 @@
-// FIX: Changed import to use Request and Response types directly without aliasing to fix type resolution issues.
-import express, { Express, Request, Response } from 'express';
+// FIX: To avoid conflicts with global DOM types, Request and Response are no longer imported directly.
+import express, { Express } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { GoogleGenAI, Type } from "@google/genai";
@@ -98,8 +98,8 @@ const tenantData: Record<string, any> = {
 };
 
 // --- Knowledge Bank API Endpoints ---
-// FIX: Correctly typed the req and res parameters to use the imported `Request` and `Response` types from Express.
-app.get('/api/knowledge-bank/:tenantId', (req: Request, res: Response) => {
+// FIX: Correctly typed the req and res parameters to use express.Request and express.Response to avoid type conflicts.
+app.get('/api/knowledge-bank/:tenantId', (req: express.Request, res: express.Response) => {
     const { tenantId } = req.params;
     console.log(`[GET /api/knowledge-bank/${tenantId}] - Request received.`);
     let knowledgeBank = tenantData[tenantId];
@@ -111,8 +111,8 @@ app.get('/api/knowledge-bank/:tenantId', (req: Request, res: Response) => {
     res.status(200).json(knowledgeBank);
 });
 
-// FIX: Correctly typed the req and res parameters to use the imported `Request` and `Response` types from Express.
-app.post('/api/knowledge-bank/:tenantId', (req: Request, res: Response) => {
+// FIX: Correctly typed the req and res parameters to use express.Request and express.Response to avoid type conflicts.
+app.post('/api/knowledge-bank/:tenantId', (req: express.Request, res: express.Response) => {
     const { tenantId } = req.params;
     const newItem = req.body as KnowledgeBankItem;
     console.log(`[POST /api/knowledge-bank/${tenantId}] - Request to add item: ${newItem.id}`);
@@ -128,8 +128,8 @@ app.post('/api/knowledge-bank/:tenantId', (req: Request, res: Response) => {
 
 // --- Secure Gemini API Endpoints ---
 
-// FIX: Correctly typed the req and res parameters to use the imported `Request` and `Response` types from Express.
-app.post('/api/analyze', async (req: Request, res: Response) => {
+// FIX: Correctly typed the req and res parameters to use express.Request and express.Response to avoid type conflicts.
+app.post('/api/analyze', async (req: express.Request, res: express.Response) => {
     try {
         const { transcript } = req.body;
         if (!transcript) return res.status(400).send('Transcript is required.');
@@ -140,15 +140,22 @@ app.post('/api/analyze', async (req: Request, res: Response) => {
             contents: prompt,
             config: { responseMimeType: "application/json", responseSchema: analysisSchema },
         });
-        res.json(JSON.parse(response.text.trim()));
+
+        const text = response.text;
+        if (!text) {
+            console.error('[server] /api/analyze error: No text in Gemini response.', response);
+            throw new Error('Received an empty text response from the AI model.');
+        }
+
+        res.json(JSON.parse(text.trim()));
     } catch (error) {
         console.error('[server] /api/analyze error:', error);
         res.status(500).send('Failed to analyze transcript.');
     }
 });
 
-// FIX: Correctly typed the req and res parameters to use the imported `Request` and `Response` types from Express.
-app.post('/api/generate-detailed-transcript', async (req: Request, res: Response) => {
+// FIX: Correctly typed the req and res parameters to use express.Request and express.Response to avoid type conflicts.
+app.post('/api/generate-detailed-transcript', async (req: express.Request, res: express.Response) => {
     try {
         const { rawTranscript } = req.body;
         if (!rawTranscript) return res.status(400).send('Raw transcript is required.');
@@ -159,15 +166,22 @@ app.post('/api/generate-detailed-transcript', async (req: Request, res: Response
             contents: prompt,
             config: { responseMimeType: "application/json", responseSchema: detailedTranscriptSchema }
         });
-        res.json(JSON.parse(response.text.trim()));
+
+        const text = response.text;
+        if (!text) {
+            console.error('[server] /api/generate-detailed-transcript error: No text in Gemini response.', response);
+            throw new Error('Received an empty text response from the AI model.');
+        }
+
+        res.json(JSON.parse(text.trim()));
     } catch (error) {
         console.error('[server] /api/generate-detailed-transcript error:', error);
         res.status(500).send('Failed to generate detailed transcript.');
     }
 });
 
-// FIX: Correctly typed the req and res parameters to use the imported `Request` and `Response` types from Express.
-app.post('/api/search-public-solutions', async (req: Request, res: Response) => {
+// FIX: Correctly typed the req and res parameters to use express.Request and express.Response to avoid type conflicts.
+app.post('/api/search-public-solutions', async (req: express.Request, res: express.Response) => {
     try {
         const { query, knowledgeBank } = req.body;
         if (!query || !knowledgeBank) return res.status(400).send('Query and knowledge bank are required.');
@@ -183,7 +197,14 @@ app.post('/api/search-public-solutions', async (req: Request, res: Response) => 
             contents: prompt,
             config: { responseMimeType: "application/json", responseSchema: knowledgeSearchSchema }
         });
-        res.json(JSON.parse(response.text.trim()));
+
+        const text = response.text;
+        if (!text) {
+            console.error('[server] /api/search-public-solutions error: No text in Gemini response.', response);
+            throw new Error('Received an empty text response from the AI model.');
+        }
+        
+        res.json(JSON.parse(text.trim()));
     } catch (error) {
         console.error('[server] /api/search-public-solutions error:', error);
         res.status(500).send('Failed to search public solutions.');
