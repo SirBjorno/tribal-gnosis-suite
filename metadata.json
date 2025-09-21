@@ -1,0 +1,7 @@
+{
+  "name": "Tribal Gnosis - Call Center Intelligence Suite MKIII",
+  "description": "A multi-role application for call transcript analysis, review workflows, and knowledge base management.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
