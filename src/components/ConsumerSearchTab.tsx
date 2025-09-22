@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import type { KnowledgeBankItem, KnowledgeSearchResults } from '../types.ts';
-import { searchPublicSolutions } from '../services/apiService.ts';
-import { ConsumerIcon, SearchIcon } from './Icons.tsx';
-import Loader from './Loader.tsx';
-import ErrorMessage from './ErrorMessage.tsx';
-import SearchResults from './SearchResults.tsx';
+import type { KnowledgeBankItem, KnowledgeSearchResults } from '';
+import { searchPublicSolutions } from '';
+import { ConsumerIcon, SearchIcon } from '';
+import Loader from '';
+import ErrorMessage from '';
+import SearchResults from '';
 
 interface ConsumerSearchTabProps {
   knowledgeBank: KnowledgeBankItem[];

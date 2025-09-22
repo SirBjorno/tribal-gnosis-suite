@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MicrophoneIcon, CloudIcon } from './Icons.tsx';
-import type { LiveCall } from '../types.ts';
+import { MicrophoneIcon, CloudIcon } from '';
+import type { LiveCall } from '';
 
 // Define interfaces for the Web Speech API to satisfy TypeScript and resolve type errors.
 // These types are not always included in default DOM typings.

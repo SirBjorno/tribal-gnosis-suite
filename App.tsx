@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import type { User, ReviewItem, LiveCall, KnowledgeBankItem } from './types.ts';
-import LoginScreen from './components/LoginScreen.tsx';
-import MainApplication from './components/MainApplication.tsx';
-import { getKnowledgeBankFromCloud } from './services/apiService.ts';
+import type { User, ReviewItem, LiveCall, KnowledgeBankItem } from '';
+import LoginScreen from '';
+import MainApplication from '';
+import { getKnowledgeBankFromCloud } from '';
 
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);

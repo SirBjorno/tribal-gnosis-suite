@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import type { User, UserRole, KnowledgeBankItem, ReviewItem, LiveCall } from '../types.ts';
-import { TribalGnosisLogo, WorkflowIcon, AnalyzerIcon, DatabaseIcon, ConsumerIcon, IntegrationsIcon, LogisticsIcon } from './Icons.tsx';
-import WorkflowTab from '../tabs/WorkflowTab.tsx';
-import AnalyzerTab from '../tabs/AnalyzerTab.tsx';
-import DatabaseTab from '../tabs/DatabaseTab.tsx';
-import ConsumerSearchTab from '../tabs/ConsumerSearchTab.tsx';
-import IntegrationsTab from '../tabs/IntegrationsTab.tsx';
-import LogisticsTab from '../tabs/LogisticsTab.tsx';
+import type { User, UserRole, KnowledgeBankItem, ReviewItem, LiveCall } from '../types';
+import { TribalGnosisLogo, WorkflowIcon, AnalyzerIcon, DatabaseIcon, ConsumerIcon, IntegrationsIcon, LogisticsIcon } from './Icons';
+import WorkflowTab from '../tabs/WorkflowTab';
+import AnalyzerTab from '../tabs/AnalyzerTab';
+import DatabaseTab from '../tabs/DatabaseTab';
+import ConsumerSearchTab from '../tabs/ConsumerSearchTab';
+import IntegrationsTab from '../tabs/IntegrationsTab';
+import LogisticsTab from '../tabs/LogisticsTab';
 
 export type Tab = 'workflow' | 'analyzer' | 'database' | 'consumer-search' | 'integrations' | 'logistics';
 

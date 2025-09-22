@@ -1,5 +1,5 @@
 import React from 'react';
-import { InfoIcon, CloseIcon } from './Icons.tsx';
+import { InfoIcon, CloseIcon } from '';
 
 interface InfoMessageProps {
   message: string;

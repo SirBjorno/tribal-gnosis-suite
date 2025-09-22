@@ -1,10 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import type { KnowledgeBankItem } from '../types.ts';
-import { DatabaseIcon, SearchIcon, CustomerProfileIcon, ChevronDownIcon } from '../components/Icons.tsx';
-import InfoMessage from '../components/InfoMessage.tsx';
-import DataManager from '../components/DataManager.tsx';
-import { getKnowledgeBankFromCloud } from '../services/apiService.ts';
-import ErrorMessage from '../components/ErrorMessage.tsx';
+import type { KnowledgeBankItem } from '';
+import { DatabaseIcon, SearchIcon, CustomerProfileIcon, ChevronDownIcon } from '';
+import InfoMessage from '';
+import DataManager from '';
+import { getKnowledgeBankFromCloud } from '';
+import ErrorMessage from '';
 
 interface DatabaseTabProps {
   knowledgeBank: KnowledgeBankItem[];

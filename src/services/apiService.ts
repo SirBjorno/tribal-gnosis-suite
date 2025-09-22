@@ -1,4 +1,4 @@
-import type { Analysis, KnowledgeSearchResults, DetailedTranscript, KnowledgeBankItem, User } from '../types.ts';
+import type { Analysis, KnowledgeSearchResults, DetailedTranscript, KnowledgeBankItem, User } from '';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 

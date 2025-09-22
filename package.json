@@ -10,7 +10,7 @@
     "dev": "concurrently \"npm:dev:frontend\" \"npm:dev:backend\"",
     "dev:frontend": "vite",
     "dev:backend": "npm run dev -w tribal-gnosis-backend",
-    "build": "npm run build -w tribal-gnosis-backend && tsc && vite build",
+    "build": "npm run build -w tribal-gnosis-backend && tsc --noEmit && vite build",
     "serve": "vite preview"
   },
   "dependencies": {

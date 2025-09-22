@@ -1,6 +1,6 @@
 import React from 'react';
-import type { ReviewItem, ReviewStatus } from '../types.ts';
-import { QueueIcon, ProcessingIcon, ApproveIcon, RejectIcon } from './Icons.tsx';
+import type { ReviewItem, ReviewStatus } from '';
+import { QueueIcon, ProcessingIcon, ApproveIcon, RejectIcon } from '';
 
 interface TranscriptInputProps {
   items: ReviewItem[];
