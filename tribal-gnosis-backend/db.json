@@ -1,0 +1,35 @@
+{
+  "acme-corp": [],
+  "globex-inc": [
+    {
+      "id": "globex_log_001",
+      "audioUrl": null,
+      "detailedTranscript": {
+        "confidenceScore": 0.99,
+        "dialogue": [
+          {
+            "speaker": "Agent",
+            "timestamp": "00:01",
+            "text": "Hello, Globex Inc, how can I help?"
+          },
+          {
+            "speaker": "Customer",
+            "timestamp": "00:04",
+            "text": "Hi, my name is Art Vandelay, account number GL-123. I can't seem to export my architectural drawings."
+          }
+        ]
+      },
+      "summary": {
+        "customerProfile": {
+          "name": "Art Vandelay",
+          "accountNumber": "GL-123"
+        },
+        "introduction": "Customer Art Vandelay called regarding an issue with exporting architectural drawings.",
+        "problem": "Cannot export architectural drawings.",
+        "solution": "User was trying to export to a proprietary format. Advised to use standard PDF export from the File > Export menu.",
+        "resolution": "Resolved. The customer successfully exported their drawings to PDF.",
+        "productInformation": "Vandelay Industries Architect Pro v3.0"
+      }
+    }
+  ]
+}

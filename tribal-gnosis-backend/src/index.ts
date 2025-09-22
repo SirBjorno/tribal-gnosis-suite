@@ -1,8 +1,16 @@
+// FIX: Refactor express import to use namespace import to fix type resolution issues.
+import * as express from 'express';
 // FIX: Import Request and Response types from express with aliases to avoid conflicts with global DOM types.
-import express, { Express, Request as ExpressRequest, Response as ExpressResponse } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { GoogleGenAI, Type } from "@google/genai";
+import { promises as fs } from 'fs';
+import path from 'path';
+
+// Aliases for Express types to avoid conflicts with global DOM types.
+type ExpressRequest = express.Request;
+type ExpressResponse = express.Response;
+
 
 // A simple type for our knowledge bank items for type safety on the backend
 interface KnowledgeBankItem {
@@ -12,8 +20,40 @@ interface KnowledgeBankItem {
 
 dotenv.config();
 
-const app: Express = express();
+const app: express.Express = express();
 const port = process.env.PORT || 3001;
+
+// Path to our JSON database file. `__dirname` is the `dist` folder after compilation, so `..` goes up to the project root.
+const DB_PATH = path.join(__dirname, '..', 'db.json');
+
+// --- Database Helper Functions ---
+// Reads the entire database from the JSON file
+const readDatabase = async (): Promise<Record<string, any>> => {
+    try {
+        const fileContent = await fs.readFile(DB_PATH, 'utf-8');
+        return JSON.parse(fileContent);
+    } catch (error: any) {
+        // If the file doesn't exist, create it with a default structure.
+        if (error.code === 'ENOENT') {
+            console.warn("Database file not found, creating a new one.");
+            const defaultData = { 'acme-corp': [], 'globex-inc': [] };
+            await writeDatabase(defaultData);
+            return defaultData;
+        }
+        console.error("Error reading database file:", error);
+        // Fallback to an empty object in case of other errors like JSON parsing failure
+        return {}; 
+    }
+};
+
+// Writes the entire database object to the JSON file
+const writeDatabase = async (data: Record<string, any>): Promise<void> => {
+    try {
+        await fs.writeFile(DB_PATH, JSON.stringify(data, null, 2), 'utf-8');
+    } catch (error) {
+        console.error("Error writing to database file:", error);
+    }
+};
 
 // Middlewares
 app.use(cors());
@@ -75,54 +115,42 @@ const knowledgeSearchSchema = {
     },
 };
 
-// In-memory data store to simulate a multi-tenant database
-const tenantData: Record<string, any> = {
-    'acme-corp': {
-        "error": "data corruption",
-        "data": "should not be here"
-    }, 
-    'globex-inc': [
-        {
-            id: "globex_log_001",
-            audioUrl: null,
-            detailedTranscript: { confidenceScore: 0.99, dialogue: [] },
-            summary: {
-                customerProfile: { name: "Art Vandelay", accountNumber: "GL-123" },
-                problem: "Cannot export architectural drawings.",
-                solution: "User was trying to export to a proprietary format. Advised to use standard PDF export.",
-                resolution: "Resolved.",
-                productInformation: "Vandelay Industries Architect Pro v3.0",
-            },
-        },
-    ],
-};
-
 // --- Knowledge Bank API Endpoints ---
 // FIX: Correctly typed the req and res parameters to use aliased express types to avoid type conflicts.
-app.get('/api/knowledge-bank/:tenantId', (req: ExpressRequest, res: ExpressResponse) => {
+app.get('/api/knowledge-bank/:tenantId', async (req: ExpressRequest, res: ExpressResponse) => {
     const { tenantId } = req.params;
     console.log(`[GET /api/knowledge-bank/${tenantId}] - Request received.`);
-    let knowledgeBank = tenantData[tenantId];
+    const db = await readDatabase();
+    let knowledgeBank = db[tenantId];
     if (!knowledgeBank || !Array.isArray(knowledgeBank)) {
         console.warn(`[server]: Data for tenant '${tenantId}' is missing or malformed. Self-healing and returning empty array.`);
-        tenantData[tenantId] = [];
+        db[tenantId] = [];
+        await writeDatabase(db); // Persist the self-healed state
         return res.status(200).json([]);
     }
     res.status(200).json(knowledgeBank);
 });
 
 // FIX: Correctly typed the req and res parameters to use aliased express types to avoid type conflicts.
-app.post('/api/knowledge-bank/:tenantId', (req: ExpressRequest, res: ExpressResponse) => {
+app.post('/api/knowledge-bank/:tenantId', async (req: ExpressRequest, res: ExpressResponse) => {
     const { tenantId } = req.params;
     const newItem = req.body as KnowledgeBankItem;
     console.log(`[POST /api/knowledge-bank/${tenantId}] - Request to add item: ${newItem.id}`);
-    if (!tenantData[tenantId] || !Array.isArray(tenantData[tenantId])) {
-        tenantData[tenantId] = [];
+    
+    const db = await readDatabase();
+
+    if (!db[tenantId] || !Array.isArray(db[tenantId])) {
+        db[tenantId] = [];
     }
-    if (tenantData[tenantId].find((item: KnowledgeBankItem) => item.id === newItem.id)) {
+    
+    // Avoid adding duplicate items
+    if (db[tenantId].find((item: KnowledgeBankItem) => item.id === newItem.id)) {
         return res.status(200).json(newItem);
     }
-    tenantData[tenantId].push(newItem);
+
+    db[tenantId].push(newItem);
+    await writeDatabase(db); // Persist the new data
+    
     res.status(201).json(newItem);
 });
 
