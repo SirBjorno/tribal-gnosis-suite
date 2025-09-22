@@ -1,5 +1,7 @@
-// FIX: Refactor express import to use namespace import to fix type resolution issues.
-import * as express from 'express';
+/// <reference types="node" />
+
+// FIX: Refactor express import to use default and named imports with aliasing to fix type resolution issues and avoid DOM conflicts.
+import express, { Request as ExpressRequestType, Response as ExpressResponseType, Express } from 'express';
 // FIX: Import Request and Response types from express with aliases to avoid conflicts with global DOM types.
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -8,8 +10,8 @@ import { promises as fs } from 'fs';
 import path from 'path';
 
 // Aliases for Express types to avoid conflicts with global DOM types.
-type ExpressRequest = express.Request;
-type ExpressResponse = express.Response;
+type ExpressRequest = ExpressRequestType;
+type ExpressResponse = ExpressResponseType;
 
 
 // A simple type for our knowledge bank items for type safety on the backend
@@ -20,7 +22,8 @@ interface KnowledgeBankItem {
 
 dotenv.config();
 
-const app: express.Express = express();
+// FIX: Use the imported Express type for the app instance.
+const app: Express = express();
 const port = process.env.PORT || 3001;
 
 // Path to our JSON database file. `__dirname` is the `dist` folder after compilation, so `..` goes up to the project root.
@@ -57,6 +60,7 @@ const writeDatabase = async (data: Record<string, any>): Promise<void> => {
 
 // Middlewares
 app.use(cors());
+// FIX: Corrected express import resolves type error for app.use(express.json(...))
 app.use(express.json({ limit: '10mb' })); 
 
 // Initialize Gemini AI Client securely on the backend
