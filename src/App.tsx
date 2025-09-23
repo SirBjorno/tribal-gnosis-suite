@@ -1,62 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import type { UserRole, ReviewItem, LiveCall, KnowledgeBankItem } from './types';
+import type { User, ReviewItem, LiveCall, KnowledgeBankItem } from './types';
 import LoginScreen from './components/LoginScreen';
 import MainApplication from './components/MainApplication';
 import { getKnowledgeBankFromCloud } from './services/apiService';
 
-const sampleData: ReviewItem[] = [
-    { 
-      id: "log_001_transcript", 
-      detailedTranscript: {
-        confidenceScore: 0.95,
-        dialogue: [
-            { speaker: 'Agent', timestamp: '00:02', text: 'Hello, this is Tech Support. How can I help?' },
-            { speaker: 'Customer', timestamp: '00:05', text: 'Hi, my internet is not working. I\'ve tried restarting the router.' },
-            { speaker: 'Agent', timestamp: '00:10', text: 'I see. Can you tell me the model of your router?' },
-            { speaker: 'Customer', timestamp: '00:14', text: 'It\'s a Speedster 5000.' },
-            { speaker: 'Agent', timestamp: '00:18', text: 'Okay, let\'s try a factory reset. There\'s a small pinhole on the back...' },
-            { speaker: 'Customer', timestamp: '00:25', text: 'It\'s working now! Thanks!' },
-        ]
-      },
-      status: 'pending_transcript', 
-      summary: null,
-      audioUrl: null,
-    },
-    { 
-      id: "log_002_transcript", 
-      detailedTranscript: {
-        confidenceScore: 0.98,
-        dialogue: [
-            { speaker: 'Customer', timestamp: '00:03', text: 'I\'d like to dispute a charge on my account.' },
-            { speaker: 'Agent', timestamp: '00:06', text: 'I can help with that. What is the charge for?' },
-            { speaker: 'Customer', timestamp: '00:11', text: 'It\'s for \'Web Services\' for $49.99. I never signed up for that.' },
-            { speaker: 'Agent', timestamp: '00:17', text: 'I apologize for the inconvenience. I\'m removing the charge now. It will reflect on your next statement.' },
-        ]
-      },
-      status: 'pending_transcript', 
-      summary: null,
-      audioUrl: null,
-    },
-];
-
 const App: React.FC = () => {
-  const [userRole, setUserRole] = useState<UserRole>(null);
-  const [tenantId, setTenantId] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [knowledgeBank, setKnowledgeBank] = useState<KnowledgeBankItem[]>([]);
-  const [reviewItems, setReviewItems] = useState<ReviewItem[]>(sampleData);
+  // Start with a clean slate, no sample data.
+  const [reviewItems, setReviewItems] = useState<ReviewItem[]>([]); 
   const [liveCall, setLiveCall] = useState<LiveCall | null>(null);
 
-  // Effect to load data from the cloud when a user logs in (tenantId is set)
+  // Effect to load data from the cloud when a user logs in
   useEffect(() => {
-    if (!tenantId) return;
+    if (!currentUser) return;
 
+    const tenantId = currentUser.tenantId;
     let isMounted = true;
+    
     const loadKnowledgeBank = async () => {
       try {
         console.log(`Fetching knowledge bank for tenant: ${tenantId}`);
         const cloudBank = await getKnowledgeBankFromCloud(tenantId);
 
-        // Client-side validation to prevent crashes from malformed data
         if (!Array.isArray(cloudBank)) {
           console.error("Received non-array data from backend, correcting to empty array.", cloudBank);
           if (isMounted) setKnowledgeBank([]);
@@ -91,28 +57,26 @@ const App: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [tenantId]);
+  }, [currentUser]);
   
-  const handleLogin = (role: UserRole, tenant: string) => {
-    setUserRole(role);
-    setTenantId(tenant);
+  const handleLogin = (user: User) => {
+    setCurrentUser(user);
   };
 
   const handleLogout = () => {
-    setUserRole(null);
-    setTenantId(null);
+    setCurrentUser(null);
     setLiveCall(null);
     setKnowledgeBank([]); // Clear knowledge bank on logout
+    setReviewItems([]); // Clear review items on logout
   };
 
-  if (!userRole || !tenantId) {
+  if (!currentUser) {
     return <LoginScreen onLogin={handleLogin} />;
   }
 
   return (
     <MainApplication 
-      userRole={userRole} 
-      tenantId={tenantId}
+      currentUser={currentUser}
       onLogout={handleLogout}
       knowledgeBank={knowledgeBank}
       setKnowledgeBank={setKnowledgeBank}

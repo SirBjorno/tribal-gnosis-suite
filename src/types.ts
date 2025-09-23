@@ -1,5 +1,12 @@
 export type UserRole = 'analyst' | 'admin' | null;
 
+export interface User {
+    name: string;
+    email: string;
+    role: NonNullable<UserRole>;
+    tenantId: string;
+}
+
 export interface CustomerProfile {
   name: string;
   accountNumber: string;

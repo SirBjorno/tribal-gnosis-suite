@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { UserRole, KnowledgeBankItem, ReviewItem, LiveCall } from '../types';
+import type { User, UserRole, KnowledgeBankItem, ReviewItem, LiveCall } from '../types';
 import { TribalGnosisLogo, WorkflowIcon, AnalyzerIcon, DatabaseIcon, ConsumerIcon, IntegrationsIcon, LogisticsIcon } from './Icons';
 import WorkflowTab from '../tabs/WorkflowTab';
 import AnalyzerTab from '../tabs/AnalyzerTab';
@@ -11,8 +11,7 @@ import LogisticsTab from '../tabs/LogisticsTab';
 export type Tab = 'workflow' | 'analyzer' | 'database' | 'consumer-search' | 'integrations' | 'logistics';
 
 interface MainApplicationProps {
-  userRole: NonNullable<UserRole>;
-  tenantId: string;
+  currentUser: User;
   onLogout: () => void;
   knowledgeBank: KnowledgeBankItem[];
   setKnowledgeBank: React.Dispatch<React.SetStateAction<KnowledgeBankItem[]>>;
@@ -31,7 +30,8 @@ const TABS: Record<Tab, { label: string; icon: React.ReactNode; roles: UserRole[
   'integrations': { label: 'Integrations', icon: <IntegrationsIcon />, roles: ['admin'] },
 };
 
-const MainApplication: React.FC<MainApplicationProps> = ({ userRole, tenantId, onLogout, knowledgeBank, setKnowledgeBank, reviewItems, setReviewItems, liveCall, setLiveCall }) => {
+const MainApplication: React.FC<MainApplicationProps> = ({ currentUser, onLogout, knowledgeBank, setKnowledgeBank, reviewItems, setReviewItems, liveCall, setLiveCall }) => {
+  const { role: userRole, tenantId, name: userName } = currentUser;
   const availableTabs = (Object.keys(TABS) as Tab[]).filter(tab => TABS[tab].roles.includes(userRole));
   const [activeTab, setActiveTab] = useState<Tab>(availableTabs[0]);
 
@@ -84,9 +84,9 @@ const MainApplication: React.FC<MainApplicationProps> = ({ userRole, tenantId, o
               <h1 className="text-xl font-bold text-slate-800 hidden sm:block tracking-tight">Tribal Gnosis</h1>
             </div>
             <div className="flex items-center gap-4">
-              <div className="text-right">
-                <span className="text-xs text-slate-500 font-semibold">TENANT</span>
-                <p className="text-sm font-semibold capitalize text-slate-700">{tenantId.replace('-', ' ')}</p>
+               <div className="text-right">
+                <span className="text-xs text-slate-500 font-semibold">USER</span>
+                <p className="text-sm font-semibold capitalize text-slate-700">{userName}</p>
               </div>
                <div className="h-8 w-px bg-slate-200 hidden sm:block"></div>
                <div className="text-right">
