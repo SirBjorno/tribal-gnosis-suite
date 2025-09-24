@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import type { ReviewItem, Analysis, DialogueEntry, DetailedTranscript, CustomerProfile } from '../types';
-import { ApproveIcon, RejectIcon, CompareIcon, CloseIcon, ProblemIcon, LightbulbIcon, CustomerProfileIcon } from './Icons';
+import type { ReviewItem, Analysis, DialogueEntry, DetailedTranscript, CustomerProfile } from '../types.ts';
+import { ApproveIcon, RejectIcon, CompareIcon, CloseIcon, ProblemIcon, LightbulbIcon, CustomerProfileIcon } from './Icons.tsx';
 
 interface AnalysisOutputProps {
   item: ReviewItem;

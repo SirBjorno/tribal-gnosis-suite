@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { DataManagerIcon, ImportIcon, ExportIcon, CloudIcon, CloudOffIcon, ProcessingIcon } from './Icons';
+import { DataManagerIcon, ImportIcon, ExportIcon, CloudIcon, CloudOffIcon, ProcessingIcon } from './Icons.tsx';
 
 interface DataManagerProps {
   onImport: (file: File) => void;

@@ -1,6 +1,6 @@
 import React from 'react';
-import type { KnowledgeSearchResults, CommonSolution } from '../types';
-import { LightbulbIcon, PuzzleIcon } from './Icons';
+import type { KnowledgeSearchResults, CommonSolution } from '../types.ts';
+import { LightbulbIcon, PuzzleIcon } from './Icons.tsx';
 
 interface SearchResultsProps {
   results: KnowledgeSearchResults;

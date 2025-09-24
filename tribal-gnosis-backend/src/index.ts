@@ -1,7 +1,8 @@
 /// <reference types="node" />
 
 // FIX: The Express `Request` and `Response` types were conflicting with global types (e.g., from fetch API). This was resolved by simplifying the express import and using `express.Request` and `express.Response` to explicitly specify the types for route handlers.
-import express, { Express } from 'express';
+// FIX: Correctly import Request and Response types from express and use them in route handlers to resolve type errors with req.body, req.params, and res.status.
+import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { GoogleGenAI, Type } from "@google/genai";
@@ -82,7 +83,7 @@ const knowledgeSearchSchema = { /* ... Omitted for brevity ... */ };
 // --- NEW Authentication Endpoints ---
 
 // FIX: Use direct `Request` and `Response` types from Express to fix type errors.
-app.post('/api/auth/signup', async (req: express.Request, res: express.Response) => {
+app.post('/api/auth/signup', async (req: Request, res: Response) => {
     const { name, email, password, companyCode } = req.body;
 
     if (!name || !email || !password || !companyCode) {
@@ -125,7 +126,7 @@ app.post('/api/auth/signup', async (req: express.Request, res: express.Response)
 
 
 // FIX: Use direct `Request` and `Response` types from Express to fix type errors.
-app.post('/api/auth/login', async (req: express.Request, res: express.Response) => {
+app.post('/api/auth/login', async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -149,7 +150,7 @@ app.post('/api/auth/login', async (req: express.Request, res: express.Response) 
 // --- Knowledge Bank API Endpoints (Updated) ---
 
 // FIX: Use direct `Request` and `Response` types from Express to fix type errors.
-app.get('/api/knowledge-bank/:tenantId', async (req: express.Request, res: express.Response) => {
+app.get('/api/knowledge-bank/:tenantId', async (req: Request, res: Response) => {
     const { tenantId } = req.params;
     console.log(`[GET /api/knowledge-bank/${tenantId}] - Request received.`);
     const db = await readDatabase();
@@ -165,7 +166,7 @@ app.get('/api/knowledge-bank/:tenantId', async (req: express.Request, res: expre
 });
 
 // FIX: Use direct `Request` and `Response` types from Express to fix type errors.
-app.post('/api/knowledge-bank/:tenantId', async (req: express.Request, res: express.Response) => {
+app.post('/api/knowledge-bank/:tenantId', async (req: Request, res: Response) => {
     const { tenantId } = req.params;
     const newItem = req.body as KnowledgeBankItem;
     console.log(`[POST /api/knowledge-bank/${tenantId}] - Request to add item: ${newItem.id}`);
@@ -189,11 +190,11 @@ app.post('/api/knowledge-bank/:tenantId', async (req: express.Request, res: expr
 
 // --- Secure Gemini API Endpoints (Unchanged) ---
 // FIX: Use direct `Request` and `Response` types from Express to fix type errors.
-app.post('/api/analyze', async (req: express.Request, res: express.Response) => { /* ... Omitted for brevity ... */ });
+app.post('/api/analyze', async (req: Request, res: Response) => { /* ... Omitted for brevity ... */ });
 // FIX: Use direct `Request` and `Response` types from Express to fix type errors.
-app.post('/api/generate-detailed-transcript', async (req: express.Request, res: express.Response) => { /* ... Omitted for brevity ... */ });
+app.post('/api/generate-detailed-transcript', async (req: Request, res: Response) => { /* ... Omitted for brevity ... */ });
 // FIX: Use direct `Request` and `Response` types from Express to fix type errors.
-app.post('/api/search-public-solutions', async (req: express.Request, res: express.Response) => { /* ... Omitted for brevity ... */ });
+app.post('/api/search-public-solutions', async (req: Request, res: Response) => { /* ... Omitted for brevity ... */ });
 
 
 app.listen(port, () => {
