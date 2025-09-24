@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import type { Analysis, KnowledgeSearchResults, ReviewItem, LiveCall, Tab } from '';
-import { analyzeTranscript, searchSessionSolutions, generateDetailedTranscript } from '';
+import type { Analysis, KnowledgeSearchResults, ReviewItem, LiveCall, Tab } from '../types';
+import { analyzeTranscript, searchSessionSolutions, generateDetailedTranscript } from '../services/apiService';
 
-import DataManager from '';
-import ErrorMessage from '';
-import Loader from '';
-import SearchResults from '';
-import { UploadIcon, SearchIcon, CustomerProfileIcon, ProblemIcon, LightbulbIcon, MicrophoneIcon } from '';
-import RealTimeTranscriber from '';
+import DataManager from '../components/DataManager';
+import ErrorMessage from '../components/ErrorMessage';
+import Loader from '../components/Loader';
+import SearchResults from '../components/SearchResults';
+import { UploadIcon, SearchIcon, CustomerProfileIcon, ProblemIcon, LightbulbIcon, MicrophoneIcon } from '../components/Icons';
+import RealTimeTranscriber from '../components/RealTimeTranscriber';
 
 // Sub-component for displaying analysis
 const AnalysisDisplay: React.FC<{ analysis: Analysis }> = ({ analysis }) => (

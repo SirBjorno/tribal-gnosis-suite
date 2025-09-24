@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import type { KnowledgeBankItem } from '';
-import { BankIcon, CustomerProfileIcon, ProblemIcon, ChevronDownIcon } from '';
+import type { KnowledgeBankItem } from '../types';
+import { BankIcon, CustomerProfileIcon, ProblemIcon, ChevronDownIcon } from './Icons';
 
 interface KnowledgeSearchProps {
     approvedSummaries: KnowledgeBankItem[];

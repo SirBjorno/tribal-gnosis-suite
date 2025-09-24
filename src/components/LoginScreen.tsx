@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import type { KnowledgeBankItem } from '../types';
+import type { User, KnowledgeBankItem, Tab } from '../types';
 import { DatabaseIcon, SearchIcon, CustomerProfileIcon, ChevronDownIcon } from './Icons';
 import InfoMessage from './InfoMessage';
 import DataManager from './DataManager';
