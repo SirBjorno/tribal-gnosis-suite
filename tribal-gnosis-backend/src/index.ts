@@ -1,29 +1,15 @@
 /// <reference types="node" />
 
-<<<<<<< HEAD
-// FIX: The Express `Request` and `Response` types were conflicting with global types (e.g., from fetch API). This was resolved by simplifying the express import and using `express.Request` and `express.Response` to explicitly specify the types for route handlers.
-// FIX: Correctly import Request and Response types from express and use them in route handlers to resolve type errors with req.body, req.params, and res.status.
-import express, { Express, Request, Response } from 'express';
-=======
-// FIX: Refactor express import to use default and named imports with aliasing to fix type resolution issues and avoid DOM conflicts.
-import express, { Request as ExpressRequestType, Response as ExpressResponseType, Express } from 'express';
-// FIX: Import Request and Response types from express with aliases to avoid conflicts with global DOM types.
->>>>>>> 9532805 (feat: change to resolve the build failure)
+// FIX: Import Express types with proper type support
+import express from 'express';
+import type { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { GoogleGenAI, Type } from "@google/genai";
 import { promises as fs } from 'fs';
 import path from 'path';
 
-<<<<<<< HEAD
-=======
-// Aliases for Express types to avoid conflicts with global DOM types.
-type ExpressRequest = ExpressRequestType;
-type ExpressResponse = ExpressResponseType;
-
-
 // A simple type for our knowledge bank items for type safety on the backend
->>>>>>> 9532805 (feat: change to resolve the build failure)
 interface KnowledgeBankItem {
   id: string;
   [key: string]: any;
@@ -51,11 +37,8 @@ interface Database {
 
 dotenv.config();
 
-<<<<<<< HEAD
-=======
 // FIX: Use the imported Express type for the app instance.
->>>>>>> 9532805 (feat: change to resolve the build failure)
-const app: Express = express();
+const app = express();
 const port = process.env.PORT || 3001;
 const DB_PATH = path.join(__dirname, '..', 'db.json');
 
