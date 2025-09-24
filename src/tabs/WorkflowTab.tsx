@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import type { Analysis, ReviewItem, KnowledgeBankItem, DetailedTranscript } from '';
-import { analyzeTranscript, addKnowledgeBankItemToCloud } from '';
-import TranscriptInput from '';
-import AnalysisOutput from '';
-import KnowledgeSearch from '';
-import ErrorMessage from '';
+import type { Analysis, ReviewItem, KnowledgeBankItem, DetailedTranscript } from '../types';
+import { analyzeTranscript, addKnowledgeBankItemToCloud } from '../services/apiService';
+import TranscriptInput from '../components/TranscriptInput';
+import AnalysisOutput from '../components/AnalysisOutput';
+import KnowledgeSearch from '../components/KnowledgeSearch';
+import ErrorMessage from '../components/ErrorMessage';
 
 interface WorkflowTabProps {
   knowledgeBank: KnowledgeBankItem[];

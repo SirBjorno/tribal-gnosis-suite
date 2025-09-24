@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
-import type { KnowledgeBankItem } from '';
-import { LogisticsIcon, ProblemIcon } from '';
+import type { KnowledgeBankItem } from '../types';
+import { LogisticsIcon, ProblemIcon } from '../components/Icons';
 
 interface LogisticsTabProps {
   knowledgeBank: KnowledgeBankItem[];

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import type { ReviewItem, LiveCall, Tab } from '';
-import InfoMessage from '';
-import { CloudIcon, PuzzleIcon } from '';
+import type { ReviewItem, LiveCall, Tab } from '../types';
+import InfoMessage from '../components/InfoMessage';
+import { CloudIcon, PuzzleIcon } from '../components/Icons';
 
 // A more realistic Microsoft Teams icon
 const MicrosoftTeamsIcon: React.FC<{ className?: string }> = ({ className = "h-12 w-12" }) => (

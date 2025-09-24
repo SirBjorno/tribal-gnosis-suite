@@ -1,6 +1,18 @@
-import React, { useState } from 'react';
-import type { User } from '../types';
-import { LoginIcon } from './Icons';
+import React, { useState, useMemo, useEffect } from 'react';
+import type { KnowledgeBankItem } from '../types';
+import { DatabaseIcon, SearchIcon, CustomerProfileIcon, ChevronDownIcon } from './Icons';
+import InfoMessage from './InfoMessage';
+import DataManager from './DataManager';
+import { getKnowledgeBankFromCloud } from '../services/apiService';
+import ErrorMessage from './ErrorMessage';
+
+interface DatabaseTabProps {
+  knowledgeBank: KnowledgeBankItem[];
+  tenantId: string;
+  setKnowledgeBank: React.Dispatch<React.SetStateAction<KnowledgeBankItem[]>>;
+}
+
+const BankItem: React.FC<{ item: KnowledgeBankItem }> = ({ item }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [showTranscript, setShowTranscript] = useState(false);
     const { summary, detailedTranscript } = item;
