@@ -42,7 +42,7 @@ const DB_PATH = path.join(__dirname, '..', 'db.json');
 // --- Database Helper Functions ---
 const readDatabase = async (): Promise<Database> => {
     try {
-        const fileContent = await fs.readFile(DB_PATH, 'utf-8');
+        const fileContent = await readFile(DB_PATH, 'utf-8');
         return JSON.parse(fileContent);
     } catch (error: any) {
         if (error.code === 'ENOENT') {
@@ -60,7 +60,7 @@ const readDatabase = async (): Promise<Database> => {
 
 const writeDatabase = async (data: Database): Promise<void> => {
     try {
-        await fs.writeFile(DB_PATH, JSON.stringify(data, null, 2), 'utf-8');
+        await writeFile(DB_PATH, JSON.stringify(data, null, 2), 'utf-8');
     } catch (error) {
         console.error("Error writing to database file:", error);
         throw new Error("Could not write to database.");
