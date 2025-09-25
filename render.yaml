@@ -1,12 +1,20 @@
 services:
   - type: web
-    name: tribal-gnosis-live
+    name: tribal-gnosis-backend
     env: node
-    buildCommand: npm run build:prod
+    buildCommand: HUSKY=0 npm ci && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+  - type: web
+    name: tribal-gnosis-frontend
+    env: node
+    buildCommand: HUSKY=0 npm ci && npm run build
     startCommand: npm run serve
     envVars:
       - key: NODE_ENV
         value: production
       - key: GEMINI_API_KEY
-        sync: false # This will be set manually in Render dashboard
-    healthCheckPath: /
+        sync: false

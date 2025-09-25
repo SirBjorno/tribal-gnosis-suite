@@ -81,8 +81,8 @@ knowledgeItemSchema.index({
 });
 
 // Middleware to enforce tenant isolation
-knowledgeItemSchema.pre('find', function() {
-  if (!this._conditions.tenantId) {
+knowledgeItemSchema.pre('find', function(this: any) {
+  if (!this.getQuery().tenantId) {
     throw new Error('Tenant ID is required for all queries');
   }
 });
