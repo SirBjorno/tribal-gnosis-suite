@@ -6,8 +6,7 @@
   "scripts": {
     "start": "node dist/index.js",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "build": "npm install -g typescript && tsc",
-    "postbuild": "cp package.json dist/ && cd dist && npm install --production",
+    "build": "tsc",
     "seed": "ts-node src/scripts/seedMaster.ts"
   },
   "preinstall": "npx only-allow npm",
