@@ -4,20 +4,13 @@
     "module": "commonjs",
     "outDir": "./dist",
     "rootDir": "./src",
-    "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "lib": ["es2020", "dom"],
+    "strict": false,
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "types": ["node"],
-    "typeRoots": ["./node_modules/@types"],
-    "allowJs": true,
-    "noImplicitAny": false
-  },
-  "ts-node": {
-    "transpileOnly": true
+    "allowJs": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]
