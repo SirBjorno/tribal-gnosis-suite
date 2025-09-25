@@ -14,7 +14,13 @@ interface WorkflowTabProps {
   tenantId: string;
 }
 
-const WorkflowTab: React.FC<WorkflowTabProps> = ({ knowledgeBank, setKnowledgeBank, reviewItems, setReviewItems, tenantId }) => {
+const WorkflowTab: React.FC<WorkflowTabProps> = ({
+  knowledgeBank,
+  setKnowledgeBank,
+  reviewItems,
+  setReviewItems,
+  tenantId,
+}) => {
   const [selectedItem, setSelectedItem] = useState<ReviewItem | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,26 +37,37 @@ const WorkflowTab: React.FC<WorkflowTabProps> = ({ knowledgeBank, setKnowledgeBa
     };
   }, []);
 
-  const handleApproveTranscript = async (item: ReviewItem, editedTranscript: DetailedTranscript) => {
+  const handleApproveTranscript = async (
+    item: ReviewItem,
+    editedTranscript: DetailedTranscript
+  ) => {
     setError(null);
     setIsProcessing(true);
     // First, update the item with the edited transcript and set status to summarizing
-    setReviewItems(prev => prev.map(i => i.id === item.id ? { ...i, status: 'summarizing', detailedTranscript: editedTranscript } : i));
+    setReviewItems((prev) =>
+      prev.map((i) =>
+        i.id === item.id ? { ...i, status: 'summarizing', detailedTranscript: editedTranscript } : i
+      )
+    );
     setSelectedItem(null);
 
     try {
       // Concatenate the *edited* dialogue to form a single transcript string
       const fullTranscript = editedTranscript.dialogue
-        .map(d => `${d.speaker}: ${d.text}`)
+        .map((d) => `${d.speaker}: ${d.text}`)
         .join('\n');
-      
+
       const summary = await analyzeTranscript(fullTranscript);
       // Update the item with the new summary and set status to pending_summary
-      setReviewItems(prev => prev.map(i => i.id === item.id ? { ...i, status: 'pending_summary', summary } : i));
+      setReviewItems((prev) =>
+        prev.map((i) => (i.id === item.id ? { ...i, status: 'pending_summary', summary } : i))
+      );
     } catch (err) {
-      setError("Failed to summarize the transcript. Please try again.");
+      setError('Failed to summarize the transcript. Please try again.');
       // Revert status on failure
-      setReviewItems(prev => prev.map(i => i.id === item.id ? { ...i, status: 'pending_transcript' } : i));
+      setReviewItems((prev) =>
+        prev.map((i) => (i.id === item.id ? { ...i, status: 'pending_transcript' } : i))
+      );
     } finally {
       setIsProcessing(false);
     }
@@ -63,33 +80,43 @@ const WorkflowTab: React.FC<WorkflowTabProps> = ({ knowledgeBank, setKnowledgeBa
       detailedTranscript: item.detailedTranscript,
       summary: editedSummary,
     };
-    
+
     // Optimistic UI Update: Update the local state immediately for a fast UX.
-    setKnowledgeBank(prev => [...prev, newKnowledgeBankEntry]);
-    setReviewItems(prev => prev.map(i => i.id === item.id ? { ...i, status: 'approved', summary: editedSummary } : i));
+    setKnowledgeBank((prev) => [...prev, newKnowledgeBankEntry]);
+    setReviewItems((prev) =>
+      prev.map((i) => (i.id === item.id ? { ...i, status: 'approved', summary: editedSummary } : i))
+    );
     setSelectedItem(null);
 
     // Asynchronously save the new entry to the backend.
     try {
       await addKnowledgeBankItemToCloud(tenantId, newKnowledgeBankEntry);
-      console.log("Successfully saved new knowledge item to the cloud.");
+      console.log('Successfully saved new knowledge item to the cloud.');
     } catch (err) {
-      setError("Failed to save the approved summary to the cloud. It is saved locally for this session, please sync later.");
+      setError(
+        'Failed to save the approved summary to the cloud. It is saved locally for this session, please sync later.'
+      );
       // In a real app, you might add a flag to the item indicating it needs to be synced.
     }
   };
-  
+
   const handleReject = (item: ReviewItem) => {
-    setReviewItems(prev => prev.map(i => i.id === item.id ? { ...i, status: 'rejected' } : i));
+    setReviewItems((prev) =>
+      prev.map((i) => (i.id === item.id ? { ...i, status: 'rejected' } : i))
+    );
     setSelectedItem(null);
   };
-  
+
   return (
     <div className="space-y-8">
       {error && <ErrorMessage message={error} />}
-      <TranscriptInput items={reviewItems} onSelectItem={setSelectedItem} isProcessing={isProcessing} />
+      <TranscriptInput
+        items={reviewItems}
+        onSelectItem={setSelectedItem}
+        isProcessing={isProcessing}
+      />
       <KnowledgeSearch approvedSummaries={knowledgeBank} />
-      
+
       {selectedItem && (
         <AnalysisOutput
           item={selectedItem}

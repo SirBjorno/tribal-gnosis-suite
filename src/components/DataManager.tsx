@@ -1,5 +1,12 @@
 import React, { useRef } from 'react';
-import { DataManagerIcon, ImportIcon, ExportIcon, CloudIcon, CloudOffIcon, ProcessingIcon } from './Icons';
+import {
+  DataManagerIcon,
+  ImportIcon,
+  ExportIcon,
+  CloudIcon,
+  CloudOffIcon,
+  ProcessingIcon,
+} from './Icons';
 
 interface DataManagerProps {
   onImport: (file: File) => void;
@@ -10,7 +17,14 @@ interface DataManagerProps {
   transcriptCount: number;
 }
 
-const DataManager: React.FC<DataManagerProps> = ({ onImport, onExport, onSync, isSyncing = false, isOnline, transcriptCount }) => {
+const DataManager: React.FC<DataManagerProps> = ({
+  onImport,
+  onExport,
+  onSync,
+  isSyncing = false,
+  isOnline,
+  transcriptCount,
+}) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImportClick = () => {
@@ -36,7 +50,9 @@ const DataManager: React.FC<DataManagerProps> = ({ onImport, onExport, onSync, i
             <p className="text-slate-600">Manage your knowledge base.</p>
           </div>
         </div>
-        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${isOnline ? 'bg-green-100 text-green-800' : 'bg-slate-200 text-slate-600'}`}>
+        <div
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${isOnline ? 'bg-green-100 text-green-800' : 'bg-slate-200 text-slate-600'}`}
+        >
           {isOnline ? <CloudIcon /> : <CloudOffIcon />}
           <span>{isOnline ? 'Online' : 'Offline'}</span>
         </div>
@@ -68,18 +84,22 @@ const DataManager: React.FC<DataManagerProps> = ({ onImport, onExport, onSync, i
           <ExportIcon />
           <span className="ml-2">Export to File</span>
         </button>
-        
+
         {/* Cloud Sync Button */}
         {onSync && (
-            <button
+          <button
             onClick={onSync}
             disabled={!isOnline || isSyncing}
-            title={!isOnline ? "Cloud sync requires an internet connection" : "Refresh data from the cloud"}
+            title={
+              !isOnline
+                ? 'Cloud sync requires an internet connection'
+                : 'Refresh data from the cloud'
+            }
             className="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-semibold rounded-md text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 disabled:bg-slate-400 disabled:cursor-not-allowed transition-colors"
-            >
+          >
             {isSyncing ? <ProcessingIcon /> : <CloudIcon />}
             <span className="ml-2">{isSyncing ? 'Syncing...' : 'Sync with Cloud'}</span>
-            </button>
+          </button>
         )}
       </div>
     </div>

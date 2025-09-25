@@ -52,12 +52,12 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ onSignup, onBackToLogin }) 
         email,
         password,
         name,
-        role: role as NonNullable<UserRole>
+        role: role as NonNullable<UserRole>,
       };
 
       const result = await signupUser(credentials);
       setSuccessMessage(result.message);
-      
+
       // Wait a moment to show the success message before redirecting
       setTimeout(() => {
         onBackToLogin(); // After signup, redirect to login
@@ -75,7 +75,9 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ onSignup, onBackToLogin }) 
         <div className="flex justify-center">
           <TribalGnosisLogo className="h-16 w-16" />
         </div>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900">Create your account</h2>
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900">
+          Create your account
+        </h2>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
@@ -85,7 +87,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ onSignup, onBackToLogin }) 
               <p className="text-sm text-green-600">{successMessage}</p>
             </div>
           )}
-          
+
           {error && (
             <div className="mb-4 p-4 rounded-md bg-red-50 border border-red-200">
               <p className="text-sm text-red-600">{error}</p>
@@ -121,7 +123,10 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ onSignup, onBackToLogin }) 
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label htmlFor="registrationKey" className="block text-sm font-medium text-slate-700">
+                <label
+                  htmlFor="registrationKey"
+                  className="block text-sm font-medium text-slate-700"
+                >
                   Registration Key
                 </label>
                 <div className="mt-1">
@@ -212,7 +217,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ onSignup, onBackToLogin }) 
               </button>
             </form>
           )}
-          
+
           <div className="mt-6">
             <button
               onClick={onBackToLogin}

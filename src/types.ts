@@ -1,29 +1,29 @@
 export type UserRole = 'analyst' | 'admin' | null;
 
 export interface TenantInfo {
-    id: string;
-    name: string;
-    domain: string;
+  id: string;
+  name: string;
+  domain: string;
 }
 
 export interface AuthCredentials {
-    email: string;
-    password: string;
-    companyCode: string;
+  email: string;
+  password: string;
+  companyCode: string;
 }
 
 export interface SignupCredentials extends AuthCredentials {
-    name: string;
-    role: NonNullable<UserRole>;
-    registrationKey: string;
+  name: string;
+  role: NonNullable<UserRole>;
+  registrationKey: string;
 }
 
 export interface User {
-    name: string;
-    email: string;
-    role: NonNullable<UserRole>;
-    tenantId: string;
-    tenant: TenantInfo;
+  name: string;
+  email: string;
+  role: NonNullable<UserRole>;
+  tenantId: string;
+  tenant: TenantInfo;
 }
 
 export interface CustomerProfile {
@@ -48,14 +48,14 @@ export type ReviewStatus =
   | 'rejected';
 
 export interface DialogueEntry {
-    speaker: 'Agent' | 'Customer' | 'Unknown';
-    timestamp: string;
-    text: string;
+  speaker: 'Agent' | 'Customer' | 'Unknown';
+  timestamp: string;
+  text: string;
 }
 
 export interface DetailedTranscript {
-    confidenceScore: number;
-    dialogue: DialogueEntry[];
+  confidenceScore: number;
+  dialogue: DialogueEntry[];
 }
 
 export interface ReviewItem {
@@ -74,7 +74,6 @@ export interface KnowledgeBankItem {
   summary: Analysis;
 }
 
-
 export interface CommonSolution {
   solution: string;
   description: string;
@@ -83,8 +82,14 @@ export interface CommonSolution {
 export type KnowledgeSearchResults = CommonSolution[];
 
 export interface LiveCall {
-    source: 'teams';
-    dialogue: string[];
+  source: 'teams';
+  dialogue: string[];
 }
 
-export type Tab = 'workflow' | 'analyzer' | 'database' | 'consumer-search' | 'integrations' | 'logistics';
+export type Tab =
+  | 'workflow'
+  | 'analyzer'
+  | 'database'
+  | 'consumer-search'
+  | 'integrations'
+  | 'logistics';
