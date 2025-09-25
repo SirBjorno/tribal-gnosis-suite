@@ -10,8 +10,23 @@
     "strict": false,
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "allowJs": true
+    "allowJs": true,
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/types"
+    ],
+    "types": [
+      "node",
+      "express",
+      "cors"
+    ]
   },
-  "include": ["src/**/*"],
+  "ts-node": {
+    "files": true
+  },
+  "include": [
+    "src/**/*",
+    "src/types/global.d.ts"
+  ],
   "exclude": ["node_modules"]
 }

@@ -1,13 +1,10 @@
-/// <reference types="node" />
-
-// FIX: Import Express types with proper type support
 import express from 'express';
 import type { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { GoogleGenAI, Type } from "@google/genai";
-import { promises as fs } from 'fs';
-import path from 'path';
+import { GoogleGenAI } from "@google/genai";
+import * as fs from 'fs/promises';
+import * as path from 'path';
 
 // A simple type for our knowledge bank items for type safety on the backend
 interface KnowledgeBankItem {
