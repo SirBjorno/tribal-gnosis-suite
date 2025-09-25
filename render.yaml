@@ -23,7 +23,7 @@ services:
   - type: web
     name: tribal-gnosis-frontend
     env: node
-    buildCommand: npm ci && npm run build:frontend
+    buildCommand: HUSKY=0 npm ci --ignore-scripts && npm run build:frontend
     startCommand: npm run serve
     envVars:
       - key: NODE_ENV
