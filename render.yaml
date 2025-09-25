@@ -2,7 +2,7 @@ services:
   - type: web
     name: tribal-gnosis-backend
     env: node
-    buildCommand: cd tribal-gnosis-backend && HUSKY=0 npm ci && npm install --save-dev @types/node @types/express @types/cors && npm run build
+    buildCommand: cd tribal-gnosis-backend && npm install && npm run build
     startCommand: cd tribal-gnosis-backend && npm run start
     envVars:
       - key: NODE_ENV
