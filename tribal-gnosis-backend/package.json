@@ -9,6 +9,7 @@
     "build": "tsc",
     "seed": "ts-node src/scripts/seedMaster.ts"
   },
+  "preinstall": "npx only-allow npm",
   "keywords": [],
   "author": "",
   "license": "ISC",
