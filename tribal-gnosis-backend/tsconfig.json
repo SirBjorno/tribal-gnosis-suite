@@ -11,18 +11,8 @@
     "moduleResolution": "node",
     "allowJs": true,
     "noImplicitAny": false,
-    "resolveJsonModule": true,
-    "types": ["node"],
-    "typeRoots": ["./node_modules/@types"],
-    "lib": ["es2020"],
-    "baseUrl": "."
+    "resolveJsonModule": true
   },
-  "ts-node": {
-    "files": true,
-    "compilerOptions": {
-      "module": "commonjs"
-    }
-  },
-  "include": ["src/**/*", "src/types/*.d.ts"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
 }
