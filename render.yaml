@@ -2,7 +2,7 @@ services:
   - type: web
     name: tribal-gnosis-backend
     env: node
-    buildCommand: cd tribal-gnosis-backend && npm install && npm run build
+    buildCommand: cd tribal-gnosis-backend && node build.js
     startCommand: cd tribal-gnosis-backend && npm run start
     envVars:
       - key: NODE_ENV

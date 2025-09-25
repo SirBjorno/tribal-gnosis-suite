@@ -11,17 +11,11 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "allowJs": true,
-    "typeRoots": [
-      "./node_modules/@types",
-      "./src/types"
-    ]
+    "noImplicitAny": false,
+    "ignoreDeprecations": "5.0",
+    "types": ["node"],
+    "lib": ["es2020", "dom"]
   },
-  "ts-node": {
-    "files": true
-  },
-  "include": [
-    "src/**/*",
-    "src/types/global.d.ts"
-  ],
+  "include": ["src/**/*"],
   "exclude": ["node_modules"]
 }
