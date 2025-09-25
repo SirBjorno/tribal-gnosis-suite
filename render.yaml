@@ -2,19 +2,33 @@ services:
   - type: web
     name: tribal-gnosis-backend
     env: node
-    buildCommand: HUSKY=0 npm ci && npm run build
-    startCommand: npm run start
+    buildCommand: cd tribal-gnosis-backend && npm ci && npm run build
+    startCommand: cd tribal-gnosis-backend && npm run start
     envVars:
       - key: NODE_ENV
         value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: MASTER_COMPANY_CODE
+        value: TRIBAL-MASTER-2025
+      - key: MASTER_EMAIL
+        sync: false
+      - key: MASTER_PASSWORD
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
 
   - type: web
     name: tribal-gnosis-frontend
     env: node
-    buildCommand: HUSKY=0 npm ci && npm run build
+    buildCommand: npm ci && npm run build:frontend
     startCommand: npm run serve
     envVars:
       - key: NODE_ENV
         value: production
+      - key: VITE_API_URL
+        sync: false
       - key: GEMINI_API_KEY
         sync: false
