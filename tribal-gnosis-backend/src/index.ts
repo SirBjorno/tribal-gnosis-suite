@@ -4,7 +4,7 @@ import cors from 'cors';
 import * as dotenv from 'dotenv';
 import { GoogleGenAI } from "@google/genai";
 import { readFile, writeFile } from 'fs/promises';
-import { join } from 'path';
+import * as path from 'path';
 
 // A simple type for our knowledge bank items for type safety on the backend
 interface KnowledgeBankItem {
