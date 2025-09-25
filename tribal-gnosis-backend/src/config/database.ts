@@ -1,8 +1,7 @@
 import mongoose from 'mongoose';
-import { join } from 'path';
-import { config } from 'dotenv';
+import * as dotenv from 'dotenv';
 
-config();
+dotenv.config();
 
 export async function connectDB() {
   try {
