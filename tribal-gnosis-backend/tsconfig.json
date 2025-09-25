@@ -8,14 +8,15 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "strict": false,
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
+    "moduleResolution": "NodeNext",
     "allowJs": true,
     "noImplicitAny": false,
-    "ignoreDeprecations": "5.0",
-    "types": ["node"],
-    "lib": ["es2020", "dom"]
+    "resolveJsonModule": true,
+    "typeRoots": ["./node_modules/@types"],
+    "paths": {
+      "*": ["node_modules/*"]
+    }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "dist"]
 }
