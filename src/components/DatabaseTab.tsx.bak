@@ -1,11 +1,22 @@
 import React, { useState } from 'react';
 import { validateCompanyCode, loginUser } from '../services/apiService';
 import ErrorMessage from './ErrorMessage';
-import type { User } from '../types';
 
 interface LoginScreenProps {
   onLogin: (user: User) => void;
 }
+
+type User = {
+  name: string;
+  email: string;
+  role: 'analyst' | 'admin';
+  tenantId: string;
+  tenant: {
+    id: string;
+    name: string;
+    domain: string;
+  };
+};
 
 const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
   const [step, setStep] = useState<'company' | 'credentials'>('company');

@@ -1,28 +1,83 @@
-import type { Analysis, KnowledgeSearchResults, DetailedTranscript, KnowledgeBankItem, User } from '../types';
+import type { Analysis, KnowledgeSearchResults, DetailedTranscript, KnowledgeBankItem, User, TenantInfo, AuthCredentials, SignupCredentials } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
-// --- NEW Authentication API ---
+// --- Authentication API ---
 
-export const loginUser = async (credentials: Record<string, string>): Promise<User> => {
-    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+export const validateCompanyCode = async (companyCode: string): Promise<TenantInfo> => {
+    const response = await fetch(`${API_BASE_URL}/api/auth/validate-company`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(credentials),
+        body: JSON.stringify({ companyCode }),
     });
     const data = await response.json();
     if (!response.ok) {
-        throw new Error(data.message || 'Failed to login.');
+        throw new Error(data.message || 'Invalid company code.');
     }
     return data;
 };
 
-export const signupUser = async (details: Record<string, string>): Promise<{ message: string }> => {
-    const response = await fetch(`${API_BASE_URL}/api/auth/signup`, {
+export const loginUser = async (credentials: AuthCredentials): Promise<User> => {
+    // First validate the company code
+    const tenant = await validateCompanyCode(credentials.companyCode);
+
+    // Then attempt login
+    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            'X-Tenant-ID': tenant.id
+        },
+        body: JSON.stringify({
+            email: credentials.email,
+            password: credentials.password
+        }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(data.message || 'Failed to login.');
+    }
+
+    // Combine user data with tenant info
+    return { ...data, tenant };
+};
+
+export const validateRegistrationKey = async (registrationKey: string, companyCode: string): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/api/auth/validate-registration`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(details),
+        body: JSON.stringify({ registrationKey, companyCode }),
     });
+    
+    if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Invalid registration key.');
+    }
+};
+
+export const signupUser = async (credentials: SignupCredentials): Promise<{ message: string }> => {
+    // First validate the registration key
+    await validateRegistrationKey(credentials.registrationKey, credentials.companyCode);
+
+    // Then validate the company code
+    const tenant = await validateCompanyCode(credentials.companyCode);
+
+    // Finally, create the user account
+    const response = await fetch(`${API_BASE_URL}/api/auth/signup`, {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            'X-Tenant-ID': tenant.id
+        },
+        body: JSON.stringify({
+            name: credentials.name,
+            email: credentials.email,
+            password: credentials.password,
+            role: credentials.role
+        }),
+    });
+
     const data = await response.json();
     if (!response.ok) {
         throw new Error(data.message || 'Failed to sign up.');
