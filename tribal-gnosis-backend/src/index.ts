@@ -71,9 +71,17 @@ const writeDatabase = async (data: Database): Promise<void> => {
 };
 
 // Middlewares
-app.use(cors());
+app.use(cors({
+  origin: ['https://tribal-gnosis-frontend.onrender.com', 'http://localhost:3000'],
+  credentials: true
+}));
 // FIX: Corrected express import resolves type error for app.use(express.json(...))
 app.use(express.json({ limit: '10mb' })); 
+
+// Add a test GET endpoint
+app.get('/api/health', (_req: Request, res: Response) => {
+  res.json({ status: 'ok', message: 'Backend is running' });
+});
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
