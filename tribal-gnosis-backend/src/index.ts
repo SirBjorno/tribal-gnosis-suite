@@ -6,6 +6,7 @@ import { GoogleGenAI } from "@google/genai";
 import { readFile, writeFile } from 'fs/promises';
 import * as path from 'path';
 import { Tenant, User, KnowledgeItem } from './models';
+import { connectDB } from './config/database';
 
 // A simple type for our knowledge bank items for type safety on the backend
 interface KnowledgeBankItem {
@@ -230,6 +231,11 @@ app.post('/api/generate-detailed-transcript', async (req: Request, res: Response
 // FIX: Use direct `Request` and `Response` types from Express to fix type errors.
 app.post('/api/search-public-solutions', async (req: Request, res: Response) => { /* ... Omitted for brevity ... */ });
 
-app.listen(port, () => {
+app.listen(port, async () => {
     console.log(`[server]: Tribal Gnosis backend is running at http://localhost:${port}`);
+    try {
+        await connectDB();
+    } catch (error) {
+        console.error('Failed to connect to database:', error);
+    }
 });
