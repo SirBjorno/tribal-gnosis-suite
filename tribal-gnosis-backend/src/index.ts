@@ -94,7 +94,7 @@ const knowledgeSearchSchema = { /* ... Omitted for brevity ... */ };
 
 app.post('/api/auth/validate-company', async (req: Request, res: Response) => {
   try {
-    console.log('Company code validation request:', req.body);
+
     const { companyCode } = req.body;
     
     if (!companyCode) {
@@ -106,7 +106,7 @@ app.post('/api/auth/validate-company', async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Invalid company code." });
     }
 
-    console.log('Company code validation successful for:', companyCode);
+
     res.status(200).json({
       id: tenant._id,
       name: tenant.name,
@@ -164,7 +164,7 @@ app.post('/api/auth/signup', async (req: Request, res: Response) => {
 
 app.post('/api/auth/login', async (req: Request, res: Response) => {
     try {
-        console.log('Login request received:', { email: req.body.email, headers: req.headers });
+
         const { email, password } = req.body;
 
         if (!email || !password) {
