@@ -11,8 +11,15 @@ export async function connectDB() {
       throw new Error('DATABASE_URL is not defined in environment variables');
     }
 
-    await mongoose.connect(dbUrl);
+    await mongoose.connect(dbUrl, {
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+      maxPoolSize: 10,
+      retryWrites: true,
+      w: 'majority'
+    });
     console.log('Connected to MongoDB successfully');
+    console.log('Database URL:', dbUrl.replace(/\/\/[^:]+:[^@]+@/, '//<credentials>@')); // Log URL without credentials
 
     // Create indexes on startup
     await Promise.all([
