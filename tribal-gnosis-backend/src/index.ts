@@ -7,6 +7,7 @@ import { readFile, writeFile } from 'fs/promises';
 import * as path from 'path';
 import { connectDB } from './config/database';
 import { seedMasterUser } from './scripts/seedMaster';
+import { Tenant, User, KnowledgeItem } from './models';
 
 // A simple type for our knowledge bank items for type safety on the backend
 interface KnowledgeBankItem {
@@ -83,6 +84,31 @@ const knowledgeSearchSchema = { /* ... Omitted for brevity ... */ };
 
 
 // --- NEW Authentication Endpoints ---
+
+app.post('/api/auth/validate-company', async (req: Request, res: Response) => {
+  try {
+    const { companyCode } = req.body;
+    
+    if (!companyCode) {
+      return res.status(400).json({ message: "Company code is required." });
+    }
+
+    const tenant = await Tenant.findOne({ companyCode });
+    if (!tenant) {
+      return res.status(404).json({ message: "Invalid company code." });
+    }
+
+    res.status(200).json({
+      id: tenant._id,
+      name: tenant.name,
+      domain: tenant.domain,
+      companyCode: tenant.companyCode
+    });
+  } catch (error) {
+    console.error('Company code validation error:', error);
+    res.status(500).json({ message: "Failed to validate company code." });
+  }
+});
 
 // FIX: Use direct `Request` and `Response` types from Express to fix type errors.
 app.post('/api/auth/signup', async (req: Request, res: Response) => {
