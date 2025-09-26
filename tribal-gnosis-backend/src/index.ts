@@ -5,6 +5,8 @@ import * as dotenv from 'dotenv';
 import { GoogleGenAI } from "@google/genai";
 import { readFile, writeFile } from 'fs/promises';
 import * as path from 'path';
+import { connectDB } from './config/database';
+import { seedMasterUser } from './scripts/seedMaster';
 
 // A simple type for our knowledge bank items for type safety on the backend
 interface KnowledgeBankItem {
@@ -196,6 +198,17 @@ app.post('/api/generate-detailed-transcript', async (req: Request, res: Response
 // FIX: Use direct `Request` and `Response` types from Express to fix type errors.
 app.post('/api/search-public-solutions', async (req: Request, res: Response) => { /* ... Omitted for brevity ... */ });
 
+// Temporary seed endpoint - TO BE REMOVED AFTER USE
+app.post('/api/seed-master', async (_req: Request, res: Response) => {
+  try {
+    await connectDB();
+    await seedMasterUser();
+    res.json({ message: 'Master user and tenant created successfully' });
+  } catch (error) {
+    console.error('Seed error:', error);
+    res.status(500).json({ error: 'Failed to seed master user' });
+  }
+});
 
 app.listen(port, () => {
     console.log(`[server]: Tribal Gnosis backend is running at http://localhost:${port}`);

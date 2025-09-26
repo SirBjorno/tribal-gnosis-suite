@@ -2,7 +2,7 @@ import { Tenant, User } from '../models';
 import bcrypt from 'bcryptjs';
 import { connectDB } from '../config/database';
 
-async function seedMasterUser() {
+export async function seedMasterUser() {
   try {
     await connectDB();
 
