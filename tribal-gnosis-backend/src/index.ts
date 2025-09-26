@@ -160,25 +160,48 @@ app.post('/api/auth/signup', async (req: Request, res: Response) => {
 });
 
 
-// FIX: Use direct `Request` and `Response` types from Express to fix type errors.
 app.post('/api/auth/login', async (req: Request, res: Response) => {
-    const { email, password } = req.body;
+    try {
+        const { email, password } = req.body;
 
-    if (!email || !password) {
-        return res.status(400).json({ message: "Email and password are required." });
+        if (!email || !password) {
+            return res.status(400).json({ message: "Email and password are required." });
+        }
+
+        const user = await User.findOne({ email: email.toLowerCase() });
+        if (!user) {
+            return res.status(401).json({ message: "Invalid credentials." });
+        }
+
+        // Compare hashed password
+        const bcrypt = require('bcryptjs');
+        const isValidPassword = await bcrypt.compare(password, user.password);
+        
+        if (!isValidPassword) {
+            return res.status(401).json({ message: "Invalid credentials." });
+        }
+
+        // Get tenant info
+        const tenant = await Tenant.findById(user.tenantId);
+        if (!tenant) {
+            return res.status(500).json({ message: "User tenant not found." });
+        }
+
+        // Return user without password
+        const { password: _, ...userWithoutPassword } = user.toObject();
+        res.status(200).json({ 
+            ...userWithoutPassword, 
+            tenant: {
+                id: tenant._id,
+                name: tenant.name,
+                domain: tenant.domain,
+                companyCode: tenant.companyCode
+            }
+        });
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ message: "Failed to login." });
     }
-
-    const db = await readDatabase();
-    const user = db.users[email.toLowerCase()];
-
-    if (!user || user.password !== password) {
-        return res.status(401).json({ message: "Invalid credentials." });
-    }
-
-    // IMPORTANT: Never send the password back to the client.
-    const { password: _, ...userWithoutPassword } = user;
-
-    res.status(200).json(userWithoutPassword);
 });
 
 
