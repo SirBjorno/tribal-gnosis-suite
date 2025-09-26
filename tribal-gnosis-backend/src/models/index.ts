@@ -70,8 +70,6 @@ const knowledgeItemSchema = new mongoose.Schema({
 });
 
 // Add indexes for better query performance
-tenantSchema.index({ companyCode: 1 });
-userSchema.index({ email: 1 });
 userSchema.index({ tenantId: 1 });
 knowledgeItemSchema.index({ tenantId: 1 });
 knowledgeItemSchema.index({ 
