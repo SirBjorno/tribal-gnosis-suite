@@ -202,7 +202,7 @@ app.post('/api/search-public-solutions', async (req: Request, res: Response) => 
 app.post('/api/seed-master', async (_req: Request, res: Response) => {
   try {
     await connectDB();
-    await seedMasterUser();
+    await seedMasterUser(false);
     res.json({ message: 'Master user and tenant created successfully' });
   } catch (error) {
     console.error('Seed error:', error);

@@ -2,7 +2,7 @@ import { Tenant, User } from '../models';
 import bcrypt from 'bcryptjs';
 import { connectDB } from '../config/database';
 
-export async function seedMasterUser() {
+export async function seedMasterUser(exitProcess = false) {
   try {
     await connectDB();
 
@@ -48,11 +48,20 @@ export async function seedMasterUser() {
     }
 
     console.log('Seed completed successfully');
-    process.exit(0);
+    if (exitProcess) {
+      process.exit(0);
+    }
+    return true;
   } catch (error) {
     console.error('Seed error:', error);
-    process.exit(1);
+    if (exitProcess) {
+      process.exit(1);
+    }
+    throw error;
   }
 }
 
-seedMasterUser();
+// Only run seeding if this file is being executed directly
+if (require.main === module) {
+  seedMasterUser(true);
+}
