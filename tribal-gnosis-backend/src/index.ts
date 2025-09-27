@@ -207,6 +207,274 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
     }
 });
 
+// --- Company Management API Endpoints ---
+
+// Get all companies (Master user only)
+app.get('/api/companies', async (req: Request, res: Response) => {
+    try {
+        const companies = await Tenant.find({}).select('-__v').sort({ createdAt: -1 });
+        
+        // Get user counts for each company
+        const companiesWithStats = await Promise.all(
+            companies.map(async (company) => {
+                const userCount = await User.countDocuments({ tenantId: company._id });
+                const knowledgeItemCount = await KnowledgeItem.countDocuments({ tenantId: company._id });
+                
+                return {
+                    _id: company._id,
+                    name: company.name,
+                    domain: company.domain,
+                    companyCode: company.companyCode,
+                    maxUsers: company.settings.maxUsers,
+                    maxStorage: company.settings.maxStorage,
+                    currentUsers: userCount,
+                    currentStorage: 0, // TODO: Calculate actual storage usage
+                    features: company.settings.features,
+                    createdAt: company.createdAt,
+                    isActive: true // TODO: Add active status to schema
+                };
+            })
+        );
+        
+        res.status(200).json(companiesWithStats);
+    } catch (error) {
+        console.error('Error fetching companies:', error);
+        res.status(500).json({ message: 'Failed to fetch companies' });
+    }
+});
+
+// Create new company (Master user only)
+app.post('/api/companies', async (req: Request, res: Response) => {
+    try {
+        const { name, domain, companyCode, maxUsers, maxStorage, features, adminUser } = req.body;
+        
+        // Validate required fields
+        if (!name || !companyCode || !adminUser.name || !adminUser.email || !adminUser.password) {
+            return res.status(400).json({ message: 'Missing required fields' });
+        }
+        
+        // Check if company code already exists
+        const existingTenant = await Tenant.findOne({ companyCode });
+        if (existingTenant) {
+            return res.status(409).json({ message: 'Company code already exists' });
+        }
+        
+        // Check if admin email already exists
+        const existingUser = await User.findOne({ email: adminUser.email.toLowerCase() });
+        if (existingUser) {
+            return res.status(409).json({ message: 'Admin email already exists' });
+        }
+        
+        // Create tenant
+        const newTenant = new Tenant({
+            name,
+            domain: domain || '',
+            companyCode: companyCode.toUpperCase(),
+            settings: {
+                maxUsers: maxUsers || 10,
+                maxStorage: maxStorage || 5,
+                features: features || {
+                    transcription: true,
+                    analysis: true,
+                    knowledgeBase: true
+                }
+            }
+        });
+        
+        const savedTenant = await newTenant.save();
+        
+        // Create admin user with hashed password
+        const bcrypt = require('bcryptjs');
+        const hashedPassword = await bcrypt.hash(adminUser.password, 10);
+        
+        const newAdminUser = new User({
+            name: adminUser.name,
+            email: adminUser.email.toLowerCase(),
+            password: hashedPassword,
+            role: 'admin',
+            tenantId: savedTenant._id
+        });
+        
+        await newAdminUser.save();
+        
+        res.status(201).json({
+            _id: savedTenant._id,
+            name: savedTenant.name,
+            domain: savedTenant.domain,
+            companyCode: savedTenant.companyCode,
+            maxUsers: savedTenant.settings.maxUsers,
+            maxStorage: savedTenant.settings.maxStorage,
+            features: savedTenant.settings.features,
+            createdAt: savedTenant.createdAt,
+            currentUsers: 1,
+            currentStorage: 0,
+            isActive: true
+        });
+    } catch (error) {
+        console.error('Error creating company:', error);
+        res.status(500).json({ message: 'Failed to create company' });
+    }
+});
+
+// Update company status (activate/deactivate)
+app.patch('/api/companies/:id/toggle-status', async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { isActive } = req.body;
+        
+        // For now, we'll update users' active status instead of tenant
+        // since we don't have an isActive field on Tenant yet
+        await User.updateMany(
+            { tenantId: id },
+            { active: isActive }
+        );
+        
+        res.status(200).json({ message: 'Company status updated successfully' });
+    } catch (error) {
+        console.error('Error updating company status:', error);
+        res.status(500).json({ message: 'Failed to update company status' });
+    }
+});
+
+// Get company details
+app.get('/api/companies/:id', async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const company = await Tenant.findById(id);
+        
+        if (!company) {
+            return res.status(404).json({ message: 'Company not found' });
+        }
+        
+        const userCount = await User.countDocuments({ tenantId: id });
+        const knowledgeItemCount = await KnowledgeItem.countDocuments({ tenantId: id });
+        
+        res.status(200).json({
+            _id: company._id,
+            name: company.name,
+            domain: company.domain,
+            companyCode: company.companyCode,
+            maxUsers: company.settings.maxUsers,
+            maxStorage: company.settings.maxStorage,
+            currentUsers: userCount,
+            currentStorage: 0, // TODO: Calculate actual storage
+            features: company.settings.features,
+            createdAt: company.createdAt,
+            isActive: true,
+            knowledgeItemCount
+        });
+    } catch (error) {
+        console.error('Error fetching company details:', error);
+        res.status(500).json({ message: 'Failed to fetch company details' });
+    }
+});
+
+// Create demo company with sample data
+app.post('/api/companies/create-demo', async (req: Request, res: Response) => {
+    try {
+        const demoCompanyCode = 'DEMO-' + Date.now().toString().slice(-4);
+        
+        // Create demo tenant
+        const demoTenant = new Tenant({
+            name: 'Demo Corporation',
+            domain: 'demo.tribal-gnosis.com',
+            companyCode: demoCompanyCode,
+            settings: {
+                maxUsers: 50,
+                maxStorage: 10,
+                features: {
+                    transcription: true,
+                    analysis: true,
+                    knowledgeBase: true
+                }
+            }
+        });
+        
+        const savedTenant = await demoTenant.save();
+        
+        // Create demo admin user
+        const bcrypt = require('bcryptjs');
+        const hashedPassword = await bcrypt.hash('demo123', 10);
+        
+        const demoAdmin = new User({
+            name: 'Demo Administrator',
+            email: 'admin@demo.tribal-gnosis.com',
+            password: hashedPassword,
+            role: 'admin',
+            tenantId: savedTenant._id
+        });
+        
+        await demoAdmin.save();
+        
+        // Create sample users
+        const sampleUsers = [
+            { name: 'John Analyst', email: 'john@demo.tribal-gnosis.com', role: 'analyst' },
+            { name: 'Jane Analyst', email: 'jane@demo.tribal-gnosis.com', role: 'analyst' },
+        ];
+        
+        for (const userData of sampleUsers) {
+            const user = new User({
+                ...userData,
+                email: userData.email,
+                password: hashedPassword,
+                tenantId: savedTenant._id
+            });
+            await user.save();
+        }
+        
+        // Create sample knowledge items
+        const sampleKnowledgeItems = [
+            {
+                tenantId: savedTenant._id,
+                title: 'Product Strategy Meeting Notes',
+                content: 'Discussion of Q1 2024 product roadmap including new feature prioritization...',
+                tags: ['strategy', 'product', 'roadmap'],
+                category: 'meetings',
+                createdBy: demoAdmin._id,
+                analysis: {
+                    summary: 'Strategic planning session covering product priorities and resource allocation.',
+                    keyPoints: ['Feature prioritization', 'Resource allocation', 'Timeline planning'],
+                    sentiment: 'positive'
+                }
+            },
+            {
+                tenantId: savedTenant._id,
+                title: 'Customer Feedback Analysis',
+                content: 'Analysis of customer feedback from Q4 2023, identifying key improvement areas...',
+                tags: ['customer', 'feedback', 'analysis'],
+                category: 'research',
+                createdBy: demoAdmin._id,
+                analysis: {
+                    summary: 'Comprehensive analysis of customer satisfaction and improvement opportunities.',
+                    keyPoints: ['UI improvements needed', 'Performance optimization', 'Feature requests'],
+                    sentiment: 'constructive'
+                }
+            }
+        ];
+        
+        for (const itemData of sampleKnowledgeItems) {
+            const knowledgeItem = new KnowledgeItem(itemData);
+            await knowledgeItem.save();
+        }
+        
+        res.status(201).json({
+            message: 'Demo company created successfully',
+            company: {
+                _id: savedTenant._id,
+                name: savedTenant.name,
+                companyCode: savedTenant.companyCode,
+                adminCredentials: {
+                    email: 'admin@demo.tribal-gnosis.com',
+                    password: 'demo123'
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error creating demo company:', error);
+        res.status(500).json({ message: 'Failed to create demo company' });
+    }
+});
+
 
 // --- Knowledge Bank API Endpoints (Updated) ---
 

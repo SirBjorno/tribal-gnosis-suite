@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import type { User } from '../types';
 import { TribalGnosisLogo } from './Icons';
+import CompanyCreationForm from './CompanyCreationForm';
+import CompanyList from './CompanyList';
 
 interface MasterDashboardProps {
   currentUser: User;
@@ -16,6 +18,9 @@ const MasterDashboard: React.FC<MasterDashboardProps> = ({
   onEnterDemoMode,
 }) => {
   const [activeView, setActiveView] = useState<MasterView>('overview');
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const { name: userName } = currentUser;
 
   const renderOverview = () => (
@@ -65,12 +70,20 @@ const MasterDashboard: React.FC<MasterDashboardProps> = ({
           <p className="text-slate-600 mb-6 leading-relaxed">
             Experience the full platform functionality in a demo environment. Perfect for demonstrations and testing features.
           </p>
-          <button
-            onClick={onEnterDemoMode}
-            className="w-full px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
-          >
-            Enter Demo Mode
-          </button>
+          <div className="space-y-3">
+            <button
+              onClick={onEnterDemoMode}
+              className="w-full px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+            >
+              Enter Demo Mode
+            </button>
+            <button
+              onClick={handleCreateDemo}
+              className="w-full px-6 py-3 bg-green-100 text-green-700 font-semibold rounded-lg hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+            >
+              Create New Demo Company
+            </button>
+          </div>
         </div>
       </div>
 
@@ -95,6 +108,36 @@ const MasterDashboard: React.FC<MasterDashboardProps> = ({
     </div>
   );
 
+  const handleCompanyCreated = (newCompany: any) => {
+    setRefreshTrigger(prev => prev + 1);
+    setShowCreateForm(false);
+  };
+
+  const handleEditCompany = (company: any) => {
+    setSelectedCompany(company);
+    setShowCreateForm(true);
+  };
+
+  const handleCreateDemo = async () => {
+    try {
+      const response = await fetch('/api/companies/create-demo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert(`Demo company created!\nCompany Code: ${result.company.companyCode}\nAdmin Email: ${result.company.adminCredentials.email}\nPassword: ${result.company.adminCredentials.password}`);
+        setRefreshTrigger(prev => prev + 1);
+      } else {
+        alert('Failed to create demo company');
+      }
+    } catch (error) {
+      console.error('Error creating demo company:', error);
+      alert('Failed to create demo company');
+    }
+  };
+
   const renderCompanyManagement = () => (
     <div className="max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-8">
@@ -109,7 +152,10 @@ const MasterDashboard: React.FC<MasterDashboardProps> = ({
           >
             Back to Overview
           </button>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+          <button
+            onClick={() => setShowCreateForm(true)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
             Create New Company
           </button>
         </div>
@@ -121,20 +167,22 @@ const MasterDashboard: React.FC<MasterDashboardProps> = ({
           <h2 className="text-xl font-semibold text-slate-800">Existing Companies</h2>
         </div>
         <div className="p-6">
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-medium text-slate-800 mb-2">No Companies Yet</h3>
-            <p className="text-slate-600 mb-4">Create your first company to get started</p>
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-              Create First Company
-            </button>
-          </div>
+          <CompanyList 
+            onEditCompany={handleEditCompany}
+            refreshTrigger={refreshTrigger}
+          />
         </div>
       </div>
+
+      {/* Company Creation Form Modal */}
+      <CompanyCreationForm
+        isOpen={showCreateForm}
+        onClose={() => {
+          setShowCreateForm(false);
+          setSelectedCompany(null);
+        }}
+        onCompanyCreated={handleCompanyCreated}
+      />
     </div>
   );
 
