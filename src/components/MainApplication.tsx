@@ -33,6 +33,7 @@ interface MainApplicationProps {
   setReviewItems: React.Dispatch<React.SetStateAction<ReviewItem[]>>;
   liveCall: LiveCall | null;
   setLiveCall: React.Dispatch<React.SetStateAction<LiveCall | null>>;
+  isDemoMode?: boolean;
 }
 
 const TABS: Record<Tab, { label: string; icon: React.ReactNode; roles: UserRole[] }> = {
@@ -57,6 +58,7 @@ const MainApplication: React.FC<MainApplicationProps> = ({
   setReviewItems,
   liveCall,
   setLiveCall,
+  isDemoMode = false,
 }) => {
   const { role: userRole, tenantId, name: userName } = currentUser;
   const availableTabs = (Object.keys(TABS) as Tab[]).filter((tab) =>
@@ -140,11 +142,16 @@ const MainApplication: React.FC<MainApplicationProps> = ({
                 <span className="text-xs text-slate-500 font-semibold">ROLE</span>
                 <p className="text-sm font-bold capitalize text-sky-600">{userRole}</p>
               </div>
+              {isDemoMode && (
+                <div className="px-3 py-1 text-xs font-semibold text-green-700 bg-green-100 rounded-full">
+                  DEMO MODE
+                </div>
+              )}
               <button
                 onClick={onLogout}
                 className="px-4 py-2 text-sm font-semibold text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition-colors"
               >
-                Logout
+                {isDemoMode ? 'Exit Demo' : 'Logout'}
               </button>
             </div>
           </div>
