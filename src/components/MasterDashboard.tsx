@@ -120,7 +120,8 @@ const MasterDashboard: React.FC<MasterDashboardProps> = ({
 
   const handleCreateDemo = async () => {
     try {
-      const response = await fetch('/api/companies/create-demo', {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+      const response = await fetch(`${API_BASE_URL}/api/companies/create-demo`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });

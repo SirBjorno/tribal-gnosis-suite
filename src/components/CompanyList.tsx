@@ -37,7 +37,8 @@ const CompanyList: React.FC<CompanyListProps> = ({ onEditCompany, refreshTrigger
   const fetchCompanies = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/companies');
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+      const response = await fetch(`${API_BASE_URL}/api/companies`);
       if (response.ok) {
         const data = await response.json();
         setCompanies(data);
@@ -51,7 +52,8 @@ const CompanyList: React.FC<CompanyListProps> = ({ onEditCompany, refreshTrigger
 
   const toggleCompanyStatus = async (companyId: string, currentStatus: boolean) => {
     try {
-      const response = await fetch(`/api/companies/${companyId}/toggle-status`, {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+      const response = await fetch(`${API_BASE_URL}/api/companies/${companyId}/toggle-status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isActive: !currentStatus }),

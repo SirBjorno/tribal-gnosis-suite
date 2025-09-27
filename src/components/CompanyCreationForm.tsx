@@ -92,8 +92,8 @@ const CompanyCreationForm: React.FC<CompanyCreationFormProps> = ({
     setIsSubmitting(true);
     
     try {
-      // TODO: Replace with actual API call
-      const response = await fetch('/api/companies', {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+      const response = await fetch(`${API_BASE_URL}/api/companies`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
