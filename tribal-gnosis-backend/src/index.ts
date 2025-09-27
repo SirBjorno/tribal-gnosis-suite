@@ -14,8 +14,8 @@ interface KnowledgeBankItem {
   [key: string]: any;
 }
 
-// --- New Types for Auth ---
-interface User {
+// --- Legacy JSON File Types (for backward compatibility) ---
+interface LegacyUser {
     name: string;
     email: string;
     password?: string; // Will be removed before sending to client
@@ -23,14 +23,14 @@ interface User {
     tenantId: string;
 }
 
-interface Tenant {
+interface LegacyTenant {
     name: string;
     signupCode: string;
 }
 
 interface Database {
-    tenants: Record<string, Tenant>;
-    users: Record<string, User>;
+    tenants: Record<string, LegacyTenant>;
+    users: Record<string, LegacyUser>;
     knowledgeBank: Record<string, KnowledgeBankItem[]>;
 }
 
@@ -142,7 +142,7 @@ app.post('/api/auth/signup', async (req: Request, res: Response) => {
     const [tenantId] = tenantEntry;
     
     // 3. Create new user (default role is 'analyst')
-    const newUser: User = {
+    const newUser: LegacyUser = {
         name,
         email: email.toLowerCase(),
         password, // In a real app, this should be hashed!
