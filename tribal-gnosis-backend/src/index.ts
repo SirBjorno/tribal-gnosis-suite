@@ -14,6 +14,21 @@ interface KnowledgeBankItem {
   [key: string]: any;
 }
 
+// Type for company response data
+interface CompanyResponse {
+  _id: string;
+  name: string;
+  domain: string;
+  companyCode: string;
+  maxUsers: number;
+  maxStorage: number;
+  currentUsers: number;
+  currentStorage: number;
+  features: any;
+  createdAt: Date;
+  isActive: boolean;
+}
+
 // --- Legacy JSON File Types (for backward compatibility) ---
 interface LegacyUser {
     name: string;
@@ -215,21 +230,21 @@ app.get('/api/companies', async (req: Request, res: Response) => {
         const companies = await Tenant.find({}).select('-__v').sort({ createdAt: -1 });
         
         // Get user counts for each company
-        const companiesWithStats = await Promise.all(
-            companies.map(async (company) => {
+        const companiesWithStats: CompanyResponse[] = await Promise.all(
+            companies.map(async (company: any): Promise<CompanyResponse> => {
                 const userCount = await User.countDocuments({ tenantId: company._id });
                 const knowledgeItemCount = await KnowledgeItem.countDocuments({ tenantId: company._id });
                 
                 return {
-                    _id: company._id,
+                    _id: company._id.toString(),
                     name: company.name,
-                    domain: company.domain,
+                    domain: company.domain || '',
                     companyCode: company.companyCode,
-                    maxUsers: company.settings.maxUsers,
-                    maxStorage: company.settings.maxStorage,
+                    maxUsers: company.settings?.maxUsers || 10,
+                    maxStorage: company.settings?.maxStorage || 5,
                     currentUsers: userCount,
                     currentStorage: 0, // TODO: Calculate actual storage usage
-                    features: company.settings.features,
+                    features: company.settings?.features || {},
                     createdAt: company.createdAt,
                     isActive: true // TODO: Add active status to schema
                 };
