@@ -258,6 +258,48 @@ app.get('/api/companies', async (req: Request, res: Response) => {
     }
 });
 
+// Get platform statistics (Master user only)
+app.get('/api/platform/stats', async (req: Request, res: Response) => {
+    try {
+        // Get total counts across all tenants
+        const totalCompanies = await Tenant.countDocuments({});
+        const totalUsers = await User.countDocuments({});
+        const totalKnowledgeItems = await KnowledgeItem.countDocuments({});
+        
+        // Get active companies (users with active status)
+        const activeCompanies = await Tenant.aggregate([
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: '_id',
+                    foreignField: 'tenantId',
+                    as: 'users'
+                }
+            },
+            {
+                $match: {
+                    'users.active': true
+                }
+            },
+            {
+                $count: 'activeCount'
+            }
+        ]);
+
+        const activeCompanyCount = activeCompanies.length > 0 ? activeCompanies[0].activeCount : 0;
+
+        res.status(200).json({
+            totalCompanies,
+            activeCompanies: activeCompanyCount,
+            totalUsers,
+            totalKnowledgeItems
+        });
+    } catch (error) {
+        console.error('Error fetching platform stats:', error);
+        res.status(500).json({ message: 'Failed to fetch platform statistics' });
+    }
+});
+
 // Create new company (Master user only)
 app.post('/api/companies', async (req: Request, res: Response) => {
     try {

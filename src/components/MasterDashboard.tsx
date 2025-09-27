@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { User } from '../types';
 import { TribalGnosisLogo } from './Icons';
 import CompanyCreationForm from './CompanyCreationForm';
@@ -21,7 +21,32 @@ const MasterDashboard: React.FC<MasterDashboardProps> = ({
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [platformStats, setPlatformStats] = useState({
+    totalCompanies: 0,
+    activeCompanies: 0,
+    totalUsers: 0,
+    totalKnowledgeItems: 0
+  });
   const { name: userName } = currentUser;
+
+  // Fetch platform statistics
+  const fetchPlatformStats = async () => {
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+      const response = await fetch(`${API_BASE_URL}/api/platform/stats`);
+      if (response.ok) {
+        const stats = await response.json();
+        setPlatformStats(stats);
+      }
+    } catch (error) {
+      console.error('Failed to fetch platform stats:', error);
+    }
+  };
+
+  // Fetch stats on component mount and when refreshTrigger changes
+  useEffect(() => {
+    fetchPlatformStats();
+  }, [refreshTrigger]);
 
   const renderOverview = () => (
     <div className="max-w-4xl mx-auto">
@@ -90,17 +115,21 @@ const MasterDashboard: React.FC<MasterDashboardProps> = ({
       {/* Quick Stats */}
       <div className="mt-12 bg-white rounded-xl shadow-sm border border-slate-200 p-8">
         <h3 className="text-xl font-bold text-slate-800 mb-6">Platform Overview</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="text-center">
-            <div className="text-3xl font-bold text-blue-600 mb-2">0</div>
+            <div className="text-3xl font-bold text-blue-600 mb-2">{platformStats.totalCompanies}</div>
+            <div className="text-slate-600">Total Companies</div>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-green-600 mb-2">{platformStats.activeCompanies}</div>
             <div className="text-slate-600">Active Companies</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-green-600 mb-2">1</div>
+            <div className="text-3xl font-bold text-purple-600 mb-2">{platformStats.totalUsers}</div>
             <div className="text-slate-600">Total Users</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-purple-600 mb-2">0</div>
+            <div className="text-3xl font-bold text-orange-600 mb-2">{platformStats.totalKnowledgeItems}</div>
             <div className="text-slate-600">Knowledge Items</div>
           </div>
         </div>
@@ -129,7 +158,7 @@ const MasterDashboard: React.FC<MasterDashboardProps> = ({
       if (response.ok) {
         const result = await response.json();
         alert(`Demo company created!\nCompany Code: ${result.company.companyCode}\nAdmin Email: ${result.company.adminCredentials.email}\nPassword: ${result.company.adminCredentials.password}`);
-        setRefreshTrigger(prev => prev + 1);
+        setRefreshTrigger(prev => prev + 1); // This will also refresh platform stats
       } else {
         alert('Failed to create demo company');
       }
