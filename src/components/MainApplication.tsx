@@ -8,6 +8,7 @@ import {
   ConsumerIcon,
   IntegrationsIcon,
   LogisticsIcon,
+  BillingIcon,
 } from './Icons';
 import WorkflowTab from '../tabs/WorkflowTab';
 import AnalyzerTab from '../tabs/AnalyzerTab';
@@ -15,6 +16,7 @@ import DatabaseTab from '../tabs/DatabaseTab';
 import ConsumerSearchTab from '../tabs/ConsumerSearchTab';
 import IntegrationsTab from '../tabs/IntegrationsTab';
 import LogisticsTab from '../tabs/LogisticsTab';
+import BillingTab from '../tabs/BillingTab';
 
 export type Tab =
   | 'workflow'
@@ -22,7 +24,8 @@ export type Tab =
   | 'database'
   | 'consumer-search'
   | 'integrations'
-  | 'logistics';
+  | 'logistics'
+  | 'billing';
 
 interface MainApplicationProps {
   currentUser: User;
@@ -47,6 +50,7 @@ const TABS: Record<Tab, { label: string; icon: React.ReactNode; roles: UserRole[
     roles: ['analyst', 'admin'],
   },
   integrations: { label: 'Integrations', icon: <IntegrationsIcon />, roles: ['admin'] },
+  billing: { label: 'Billing', icon: <BillingIcon />, roles: ['admin'] },
 };
 
 const MainApplication: React.FC<MainApplicationProps> = ({
@@ -109,6 +113,8 @@ const MainApplication: React.FC<MainApplicationProps> = ({
               setLiveCall={setLiveCall}
             />
           );
+        case 'billing':
+          return <BillingTab userRole={userRole} />;
         default:
           return null;
       }

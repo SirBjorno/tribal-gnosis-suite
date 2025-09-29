@@ -5,7 +5,7 @@ import * as dotenv from 'dotenv';
 import { GoogleGenAI } from "@google/genai";
 import { readFile, writeFile } from 'fs/promises';
 import * as path from 'path';
-import { Tenant, User, KnowledgeItem } from './models';
+import { Tenant, User, KnowledgeItem, UsageRecord, SUBSCRIPTION_TIERS } from './models';
 import { connectDB } from './config/database';
 
 // A simple type for our knowledge bank items for type safety on the backend
@@ -529,6 +529,159 @@ app.post('/api/companies/create-demo', async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Error creating demo company:', error);
         res.status(500).json({ message: 'Failed to create demo company' });
+    }
+});
+
+// --- Subscription & Billing API Endpoints ---
+
+// Get subscription tiers and pricing
+app.get('/api/subscription/tiers', async (req: Request, res: Response) => {
+    try {
+        const { SUBSCRIPTION_TIERS } = require('./models/index');
+        res.status(200).json(SUBSCRIPTION_TIERS);
+    } catch (error) {
+        console.error('Error fetching subscription tiers:', error);
+        res.status(500).json({ message: 'Failed to fetch subscription tiers' });
+    }
+});
+
+// Get tenant subscription details
+app.get('/api/subscription/:tenantId', async (req: Request, res: Response) => {
+    try {
+        const { getSubscriptionDetails } = require('./services/stripeService');
+        const { tenantId } = req.params;
+        
+        const details = await getSubscriptionDetails(tenantId);
+        res.status(200).json(details);
+    } catch (error) {
+        console.error('Error fetching subscription details:', error);
+        res.status(500).json({ message: 'Failed to fetch subscription details' });
+    }
+});
+
+// Create subscription for tenant
+app.post('/api/subscription/create', async (req: Request, res: Response) => {
+    try {
+        const { createSubscription, STRIPE_PRICE_IDS } = require('./services/stripeService');
+        const { tenantId, tier } = req.body;
+        
+        if (!tenantId || !tier) {
+            return res.status(400).json({ message: 'Tenant ID and tier are required' });
+        }
+        
+        const priceId = STRIPE_PRICE_IDS[tier];
+        if (!priceId) {
+            return res.status(400).json({ message: 'Invalid subscription tier' });
+        }
+        
+        const result = await createSubscription(tenantId, priceId);
+        res.status(201).json(result);
+    } catch (error) {
+        console.error('Error creating subscription:', error);
+        res.status(500).json({ message: 'Failed to create subscription' });
+    }
+});
+
+// Update subscription tier
+app.patch('/api/subscription/:tenantId/tier', async (req: Request, res: Response) => {
+    try {
+        const { updateSubscription } = require('./services/stripeService');
+        const { tenantId } = req.params;
+        const { tier } = req.body;
+        
+        if (!tier) {
+            return res.status(400).json({ message: 'New tier is required' });
+        }
+        
+        const result = await updateSubscription(tenantId, tier);
+        res.status(200).json(result);
+    } catch (error) {
+        console.error('Error updating subscription:', error);
+        res.status(500).json({ message: 'Failed to update subscription' });
+    }
+});
+
+// Cancel subscription
+app.delete('/api/subscription/:tenantId', async (req: Request, res: Response) => {
+    try {
+        const { cancelSubscription } = require('./services/stripeService');
+        const { tenantId } = req.params;
+        const { immediate = false } = req.body;
+        
+        const result = await cancelSubscription(tenantId, immediate);
+        res.status(200).json(result);
+    } catch (error) {
+        console.error('Error canceling subscription:', error);
+        res.status(500).json({ message: 'Failed to cancel subscription' });
+    }
+});
+
+// Get usage statistics for tenant
+app.get('/api/usage/:tenantId', async (req: Request, res: Response) => {
+    try {
+        const { tenantId } = req.params;
+        const { UsageRecord } = require('./models/index');
+        const { getUsagePercentage } = require('./utils/subscriptionUtils');
+        
+        const tenant = await Tenant.findById(tenantId);
+        if (!tenant) {
+            return res.status(404).json({ message: 'Tenant not found' });
+        }
+        
+        // Get current period usage
+        const currentUsage = tenant.usage.currentPeriod;
+        
+        // Get usage history for last 30 days
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        
+        const usageHistory = await UsageRecord.find({
+            tenantId,
+            date: { $gte: thirtyDaysAgo }
+        }).sort({ date: -1 }).limit(100);
+        
+        // Calculate usage percentages
+        const minutesPercentage = getUsagePercentage(tenant, 'minutes');
+        const storagePercentage = getUsagePercentage(tenant, 'storage');
+        
+        res.status(200).json({
+            currentPeriod: currentUsage,
+            usagePercentages: {
+                minutes: minutesPercentage,
+                storage: storagePercentage
+            },
+            history: usageHistory,
+            subscription: {
+                tier: tenant.subscription.tier,
+                status: tenant.subscription.status
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching usage statistics:', error);
+        res.status(500).json({ message: 'Failed to fetch usage statistics' });
+    }
+});
+
+// Stripe webhook endpoint
+app.post('/api/webhooks/stripe', express.raw({ type: 'application/json' }), async (req: Request, res: Response) => {
+    try {
+        const { handleWebhook, stripe } = require('./services/stripeService');
+        const sig = req.headers['stripe-signature'];
+        const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+        
+        let event;
+        try {
+            event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+        } catch (err: any) {
+            console.error('Webhook signature verification failed:', err.message);
+            return res.status(400).send(`Webhook Error: ${err.message}`);
+        }
+        
+        await handleWebhook(event);
+        res.status(200).json({ received: true });
+    } catch (error) {
+        console.error('Error handling Stripe webhook:', error);
+        res.status(500).json({ message: 'Webhook processing failed' });
     }
 });
 
