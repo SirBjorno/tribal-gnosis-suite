@@ -735,6 +735,13 @@ app.post('/api/generate-detailed-transcript', async (req: Request, res: Response
 // FIX: Use direct `Request` and `Response` types from Express to fix type errors.
 app.post('/api/search-public-solutions', async (req: Request, res: Response) => { /* ... Omitted for brevity ... */ });
 
+// --- User Management API Endpoints ---
+const userManagementRoutes = require('./routes/userManagement');
+const invitationRoutes = require('./routes/invitations');
+
+app.use('/api/users', userManagementRoutes);
+app.use('/api/invitations', invitationRoutes);
+
 app.listen(port, async () => {
     console.log(`[server]: Tribal Gnosis backend is running at http://localhost:${port}`);
     try {
