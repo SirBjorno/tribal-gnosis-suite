@@ -1,0 +1,46 @@
+"filename", "language", "TypeScript JSX", "TypeScript", "PostCSS", "HTML", "comment", "blank", "total"
+"c:\Users\anieu\tribal-gnosis-live\src\App.tsx", "TypeScript JSX", 113, 0, 0, 0, 6, 19, 138
+"c:\Users\anieu\tribal-gnosis-live\src\components\AnalysisOutput.tsx", "TypeScript JSX", 301, 0, 0, 0, 0, 18, 319
+"c:\Users\anieu\tribal-gnosis-live\src\components\AnalyticsDashboard.tsx", "TypeScript JSX", 524, 0, 0, 0, 3, 46, 573
+"c:\Users\anieu\tribal-gnosis-live\src\components\CompanyCreationForm.tsx", "TypeScript JSX", 314, 0, 0, 0, 6, 32, 352
+"c:\Users\anieu\tribal-gnosis-live\src\components\CompanyList.tsx", "TypeScript JSX", 263, 0, 0, 0, 6, 24, 293
+"c:\Users\anieu\tribal-gnosis-live\src\components\ConsumerSearchTab.tsx", "TypeScript JSX", 98, 0, 0, 0, 0, 8, 106
+"c:\Users\anieu\tribal-gnosis-live\src\components\DataManager.tsx", "TypeScript JSX", 96, 0, 0, 0, 4, 10, 110
+"c:\Users\anieu\tribal-gnosis-live\src\components\DatabaseTab.tsx", "TypeScript JSX", 239, 0, 0, 0, 0, 21, 260
+"c:\Users\anieu\tribal-gnosis-live\src\components\EnhancedMainApplication.tsx", "TypeScript JSX", 179, 0, 0, 0, 7, 15, 201
+"c:\Users\anieu\tribal-gnosis-live\src\components\ErrorMessage.tsx", "TypeScript JSX", 16, 0, 0, 0, 0, 4, 20
+"c:\Users\anieu\tribal-gnosis-live\src\components\Icons.tsx", "TypeScript JSX", 551, 0, 0, 0, 6, 7, 564
+"c:\Users\anieu\tribal-gnosis-live\src\components\InfoMessage.tsx", "TypeScript JSX", 29, 0, 0, 0, 0, 4, 33
+"c:\Users\anieu\tribal-gnosis-live\src\components\InvitationAcceptance.tsx", "TypeScript JSX", 263, 0, 0, 0, 1, 33, 297
+"c:\Users\anieu\tribal-gnosis-live\src\components\KnowledgeSearch.tsx", "TypeScript JSX", 76, 0, 0, 0, 0, 7, 83
+"c:\Users\anieu\tribal-gnosis-live\src\components\Loader.tsx", "TypeScript JSX", 13, 0, 0, 0, 0, 4, 17
+"c:\Users\anieu\tribal-gnosis-live\src\components\LoginScreen.tsx", "TypeScript JSX", 140, 0, 0, 0, 0, 11, 151
+"c:\Users\anieu\tribal-gnosis-live\src\components\MainApplication.tsx", "TypeScript JSX", 187, 0, 0, 0, 1, 10, 198
+"c:\Users\anieu\tribal-gnosis-live\src\components\MasterDashboard.tsx", "TypeScript JSX", 245, 0, 0, 0, 9, 20, 274
+"c:\Users\anieu\tribal-gnosis-live\src\components\PricingPage.tsx", "TypeScript JSX", 234, 0, 0, 0, 8, 18, 260
+"c:\Users\anieu\tribal-gnosis-live\src\components\RealTimeTranscriber.tsx", "TypeScript JSX", 215, 0, 0, 0, 9, 24, 248
+"c:\Users\anieu\tribal-gnosis-live\src\components\SearchResults.tsx", "TypeScript JSX", 47, 0, 0, 0, 0, 6, 53
+"c:\Users\anieu\tribal-gnosis-live\src\components\SignupScreen.tsx", "TypeScript JSX", 212, 0, 0, 0, 2, 22, 236
+"c:\Users\anieu\tribal-gnosis-live\src\components\SubscriptionDashboard.tsx", "TypeScript JSX", 294, 0, 0, 0, 9, 31, 334
+"c:\Users\anieu\tribal-gnosis-live\src\components\TranscriptInput.tsx", "TypeScript JSX", 97, 0, 0, 0, 0, 9, 106
+"c:\Users\anieu\tribal-gnosis-live\src\components\UserManagementDashboard.tsx", "TypeScript JSX", 501, 0, 0, 0, 4, 49, 554
+"c:\Users\anieu\tribal-gnosis-live\src\constants.ts", "TypeScript", 0, 9, 0, 0, 1, 3, 13
+"c:\Users\anieu\tribal-gnosis-live\src\hooks\useUsage.tsx", "TypeScript JSX", 133, 0, 0, 0, 6, 25, 164
+"c:\Users\anieu\tribal-gnosis-live\src\index.css", "PostCSS", 0, 0, 3, 0, 0, 1, 4
+"c:\Users\anieu\tribal-gnosis-live\src\index.html", "HTML", 0, 0, 0, 59, 0, 1, 60
+"c:\Users\anieu\tribal-gnosis-live\src\index.tsx", "TypeScript JSX", 14, 0, 0, 0, 0, 3, 17
+"c:\Users\anieu\tribal-gnosis-live\src\services\apiService.ts", "TypeScript", 0, 171, 0, 0, 25, 23, 219
+"c:\Users\anieu\tribal-gnosis-live\src\services\geminiService.ts", "TypeScript", 0, 0, 0, 0, 1, 1, 2
+"c:\Users\anieu\tribal-gnosis-live\src\services\subscriptionService.ts", "TypeScript", 0, 178, 0, 0, 7, 34, 219
+"c:\Users\anieu\tribal-gnosis-live\src\services\userManagementService.ts", "TypeScript", 0, 292, 0, 0, 7, 68, 367
+"c:\Users\anieu\tribal-gnosis-live\src\tabs\AnalyzerTab.tsx", "TypeScript JSX", 396, 0, 0, 0, 9, 29, 434
+"c:\Users\anieu\tribal-gnosis-live\src\tabs\BillingTab.tsx", "TypeScript JSX", 174, 0, 0, 0, 12, 23, 209
+"c:\Users\anieu\tribal-gnosis-live\src\tabs\ConsumerSearchTab.tsx", "TypeScript JSX", 98, 0, 0, 0, 0, 8, 106
+"c:\Users\anieu\tribal-gnosis-live\src\tabs\DatabaseTab.tsx", "TypeScript JSX", 245, 0, 0, 0, 1, 22, 268
+"c:\Users\anieu\tribal-gnosis-live\src\tabs\IntegrationsTab.tsx", "TypeScript JSX", 178, 0, 0, 0, 1, 13, 192
+"c:\Users\anieu\tribal-gnosis-live\src\tabs\LogisticsTab.tsx", "TypeScript JSX", 67, 0, 0, 0, 0, 10, 77
+"c:\Users\anieu\tribal-gnosis-live\src\tabs\WorkflowTab.tsx", "TypeScript JSX", 114, 0, 0, 0, 7, 14, 135
+"c:\Users\anieu\tribal-gnosis-live\src\test\LoginScreen.test.tsx", "TypeScript JSX", 32, 0, 0, 0, 0, 10, 42
+"c:\Users\anieu\tribal-gnosis-live\src\test\setup.ts", "TypeScript", 0, 8, 0, 0, 2, 3, 13
+"c:\Users\anieu\tribal-gnosis-live\src\types.ts", "TypeScript", 0, 79, 0, 0, 1, 16, 96
+"Total", "-", 6698, 737, 3, 59, 161, 759, 8417
