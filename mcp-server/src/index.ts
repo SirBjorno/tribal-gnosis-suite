@@ -111,6 +111,15 @@ class TribalGnosisMCPServer {
           case 'get_error_analysis':
             return await this.handleGetErrorAnalysis(args);
 
+          case 'get_env_vars':
+            return await this.handleGetEnvVars(args);
+
+          case 'set_env_var':
+            return await this.handleSetEnvVar(args);
+
+          case 'delete_env_var':
+            return await this.handleDeleteEnvVar(args);
+
           default:
             throw new McpError(
               ErrorCode.MethodNotFound,
@@ -312,6 +321,63 @@ class TribalGnosisMCPServer {
           required: [],
         },
       },
+      {
+        name: 'get_env_vars',
+        description: 'Get environment variables for a service',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            service: {
+              type: 'string',
+              enum: ['backend', 'frontend'],
+              description: 'Which service to get environment variables for',
+            },
+          },
+          required: ['service'],
+        },
+      },
+      {
+        name: 'set_env_var',
+        description: 'Set or update an environment variable for a service',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            service: {
+              type: 'string',
+              enum: ['backend', 'frontend'],
+              description: 'Which service to set environment variable for',
+            },
+            key: {
+              type: 'string',
+              description: 'Environment variable name (e.g., STRIPE_SECRET_KEY)',
+            },
+            value: {
+              type: 'string',
+              description: 'Environment variable value',
+            },
+          },
+          required: ['service', 'key', 'value'],
+        },
+      },
+      {
+        name: 'delete_env_var',
+        description: 'Delete an environment variable from a service',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            service: {
+              type: 'string',
+              enum: ['backend', 'frontend'],
+              description: 'Which service to delete environment variable from',
+            },
+            key: {
+              type: 'string',
+              description: 'Environment variable name to delete',
+            },
+          },
+          required: ['service', 'key'],
+        },
+      },
     ];
   }
 
@@ -456,6 +522,48 @@ class TribalGnosisMCPServer {
         {
           type: 'text',
           text: JSON.stringify(analysis, null, 2),
+        },
+      ],
+    };
+  }
+
+  private async handleGetEnvVars(args: any) {
+    const { service } = args;
+    const result = await this.renderManager.getEnvironmentVariables(service);
+    
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(result, null, 2),
+        },
+      ],
+    };
+  }
+
+  private async handleSetEnvVar(args: any) {
+    const { service, key, value } = args;
+    const result = await this.renderManager.setEnvironmentVariable(service, key, value);
+    
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(result, null, 2),
+        },
+      ],
+    };
+  }
+
+  private async handleDeleteEnvVar(args: any) {
+    const { service, key } = args;
+    const result = await this.renderManager.deleteEnvironmentVariable(service, key);
+    
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(result, null, 2),
         },
       ],
     };

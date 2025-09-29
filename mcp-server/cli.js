@@ -37,6 +37,26 @@ const commands = {
   'restart-frontend': async () => {
     const render = new RenderManager();
     return await render.restartService('frontend');
+  },
+
+  'get-env': async () => {
+    const render = new RenderManager();
+    const service = process.argv[3];
+    if (!service) {
+      throw new Error('Usage: npm run cli get-env <backend|frontend>');
+    }
+    return await render.getEnvironmentVariables(service);
+  },
+
+  'set-env': async () => {
+    const render = new RenderManager();
+    const service = process.argv[3];
+    const key = process.argv[4];
+    const value = process.argv[5];
+    if (!service || !key || !value) {
+      throw new Error('Usage: npm run cli set-env <backend|frontend> <KEY> <VALUE>');
+    }
+    return await render.setEnvironmentVariable(service, key, value);
   }
 };
 

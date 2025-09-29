@@ -283,4 +283,131 @@ export class RenderManager {
       };
     }
   }
+
+  async getEnvironmentVariables(service: 'backend' | 'frontend') {
+    try {
+      const serviceId = this.getServiceId(service);
+      
+      this.logger.info(`Fetching environment variables for ${service} service`, { serviceId });
+
+      const response = await axios.get(
+        `${this.baseUrl}/services/${serviceId}/env-vars`,
+        { headers: this.getHeaders() }
+      );
+
+      return {
+        success: true,
+        service,
+        serviceId,
+        timestamp: new Date().toISOString(),
+        envVars: response.data,
+      };
+    } catch (error: any) {
+      this.logger.error(`Failed to fetch environment variables for ${service} service`, { error: error.message });
+      return {
+        success: false,
+        service,
+        error: error.message,
+        timestamp: new Date().toISOString(),
+      };
+    }
+  }
+
+  async setEnvironmentVariable(service: 'backend' | 'frontend', key: string, value: string) {
+    try {
+      const serviceId = this.getServiceId(service);
+      
+      this.logger.info(`Setting environment variable for ${service} service`, { serviceId, key });
+
+      const response = await axios.post(
+        `${this.baseUrl}/services/${serviceId}/env-vars`,
+        {
+          key,
+          value
+        },
+        { headers: this.getHeaders() }
+      );
+
+      return {
+        success: true,
+        service,
+        serviceId,
+        key,
+        timestamp: new Date().toISOString(),
+        response: response.data,
+      };
+    } catch (error: any) {
+      this.logger.error(`Failed to set environment variable for ${service} service`, { error: error.message });
+      return {
+        success: false,
+        service,
+        key,
+        error: error.message,
+        timestamp: new Date().toISOString(),
+      };
+    }
+  }
+
+  async updateEnvironmentVariable(service: 'backend' | 'frontend', key: string, value: string) {
+    try {
+      const serviceId = this.getServiceId(service);
+      
+      this.logger.info(`Updating environment variable for ${service} service`, { serviceId, key });
+
+      const response = await axios.put(
+        `${this.baseUrl}/services/${serviceId}/env-vars/${key}`,
+        { value },
+        { headers: this.getHeaders() }
+      );
+
+      return {
+        success: true,
+        service,
+        serviceId,
+        key,
+        timestamp: new Date().toISOString(),
+        response: response.data,
+      };
+    } catch (error: any) {
+      this.logger.error(`Failed to update environment variable for ${service} service`, { error: error.message });
+      return {
+        success: false,
+        service,
+        key,
+        error: error.message,
+        timestamp: new Date().toISOString(),
+      };
+    }
+  }
+
+  async deleteEnvironmentVariable(service: 'backend' | 'frontend', key: string) {
+    try {
+      const serviceId = this.getServiceId(service);
+      
+      this.logger.info(`Deleting environment variable for ${service} service`, { serviceId, key });
+
+      const response = await axios.delete(
+        `${this.baseUrl}/services/${serviceId}/env-vars/${key}`,
+        { headers: this.getHeaders() }
+      );
+
+      return {
+        success: true,
+        service,
+        serviceId,
+        key,
+        timestamp: new Date().toISOString(),
+        response: response.data,
+      };
+    } catch (error: any) {
+      this.logger.error(`Failed to delete environment variable for ${service} service`, { error: error.message });
+      return {
+        success: false,
+        service,
+        key,
+        error: error.message,
+        timestamp: new Date().toISOString(),
+      };
+    }
+  }
 }
