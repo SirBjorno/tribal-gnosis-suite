@@ -736,8 +736,8 @@ app.post('/api/generate-detailed-transcript', async (req: Request, res: Response
 app.post('/api/search-public-solutions', async (req: Request, res: Response) => { /* ... Omitted for brevity ... */ });
 
 // --- User Management API Endpoints ---
-const userManagementRoutes = require('./routes/userManagement');
-const invitationRoutes = require('./routes/invitations');
+const userManagementRoutes = require('./routes/userManagement').default;
+const invitationRoutes = require('./routes/invitations').default;
 
 app.use('/api/users', userManagementRoutes);
 app.use('/api/invitations', invitationRoutes);
