@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { AlertCircle, CheckCircle2, Users, Mail, Lock, User } from 'lucide-react';
-import { ErrorMessage } from './ErrorMessage';
-import { InfoMessage } from './InfoMessage';
-import { Loader } from './Loader';
+import ErrorMessage from './ErrorMessage';
+import InfoMessage from './InfoMessage';
+import Loader from './Loader';
 
 interface InvitationDetails {
     id: string;
@@ -183,7 +183,7 @@ export const InvitationAcceptance: React.FC<InvitationAcceptanceProps> = ({ toke
                     <div className="text-center">
                         <CheckCircle2 className="mx-auto h-16 w-16 text-green-500 mb-4" />
                         <h2 className="text-2xl font-bold text-gray-900 mb-4">Welcome aboard!</h2>
-                        <InfoMessage message={success} />
+                        <InfoMessage message={success} onDismiss={() => setSuccess('')} />
                     </div>
                 </div>
             </div>

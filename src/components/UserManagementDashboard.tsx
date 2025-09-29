@@ -266,7 +266,7 @@ export const UserManagementDashboard: React.FC<UserManagementDashboardProps> = (
             </div>
 
             {error && <ErrorMessage message={error} />}
-            {success && <InfoMessage message={success} />}
+            {success && <InfoMessage message={success} onDismiss={() => setSuccess('')} />}
 
             {/* Tabs */}
             <div className="flex space-x-1 mb-6 bg-gray-100 rounded-lg p-1">
