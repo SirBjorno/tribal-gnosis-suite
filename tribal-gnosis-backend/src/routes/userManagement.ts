@@ -1,5 +1,5 @@
 import express from 'express';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken, AuthenticatedRequest } from '../middleware/auth';
 import { userManagementService } from '../services/userManagementService';
 import { UserProfile, ONBOARDING_STEPS } from '../models/userManagement';
 
@@ -12,8 +12,9 @@ router.use(authenticateToken);
 router.post('/invite', async (req, res) => {
   try {
     const { email, role = 'user' } = req.body;
-    const inviterUserId = req.user.userId;
-    const tenantId = req.user.tenantId;
+    const authReq = req as AuthenticatedRequest;
+    const inviterUserId = authReq.user.userId;
+    const tenantId = authReq.user.tenantId;
 
     if (!email) {
       return res.status(400).json({ error: 'Email is required' });
@@ -40,8 +41,9 @@ router.post('/invite', async (req, res) => {
 
 router.get('/invitations', async (req, res) => {
   try {
-    const userId = req.user.userId;
-    const tenantId = req.user.tenantId;
+    const authReq = req as AuthenticatedRequest;
+    const userId = authReq.user.userId;
+    const tenantId = authReq.user.tenantId;
 
     const invitations = await userManagementService.getInvitations(tenantId, userId);
     res.json(invitations);
@@ -55,7 +57,8 @@ router.get('/invitations', async (req, res) => {
 router.delete('/invitations/:invitationId', async (req, res) => {
   try {
     const { invitationId } = req.params;
-    const revokerUserId = req.user.userId;
+    const authReq = req as unknown as AuthenticatedRequest;
+    const revokerUserId = authReq.user.userId;
 
     const result = await userManagementService.revokeInvitation(invitationId, revokerUserId);
     res.json(result);
@@ -69,7 +72,8 @@ router.delete('/invitations/:invitationId', async (req, res) => {
 // User profile routes
 router.get('/profile', async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const authReq = req as AuthenticatedRequest;
+    const userId = authReq.user.userId;
     const profile = await userManagementService.getUserProfile(userId);
     res.json(profile);
 
@@ -81,7 +85,8 @@ router.get('/profile', async (req, res) => {
 
 router.put('/profile', async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const authReq = req as AuthenticatedRequest;
+    const userId = authReq.user.userId;
     const updates = req.body;
 
     // Remove sensitive fields that shouldn't be updated via this endpoint
@@ -110,7 +115,8 @@ router.get('/onboarding/steps', async (req, res) => {
 
 router.put('/onboarding/progress', async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const authReq = req as AuthenticatedRequest;
+    const userId = authReq.user.userId;
     const { step, completed = false } = req.body;
 
     if (typeof step !== 'number') {
@@ -129,8 +135,9 @@ router.put('/onboarding/progress', async (req, res) => {
 // Permission routes
 router.get('/permissions', async (req, res) => {
   try {
-    const userId = req.user.userId;
-    const tenantId = req.user.tenantId;
+    const authReq = req as AuthenticatedRequest;
+    const userId = authReq.user.userId;
+    const tenantId = authReq.user.tenantId;
 
     const permissions = await userManagementService.getUserPermissions(userId, tenantId);
     res.json(permissions);
@@ -143,9 +150,10 @@ router.get('/permissions', async (req, res) => {
 
 router.put('/permissions/:targetUserId', async (req, res) => {
   try {
+    const authReq = req as unknown as AuthenticatedRequest;
     const { targetUserId } = req.params;
-    const updaterUserId = req.user.userId;
-    const tenantId = req.user.tenantId;
+    const updaterUserId = authReq.user.userId;
+    const tenantId = authReq.user.tenantId;
     const { permissions } = req.body;
 
     if (!permissions || typeof permissions !== 'object') {
@@ -170,8 +178,9 @@ router.put('/permissions/:targetUserId', async (req, res) => {
 // User management routes
 router.get('/users', async (req, res) => {
   try {
-    const requesterId = req.user.userId;
-    const tenantId = req.user.tenantId;
+    const authReq = req as AuthenticatedRequest;
+    const requesterId = authReq.user.userId;
+    const tenantId = authReq.user.tenantId;
 
     const users = await userManagementService.getTenantUsers(tenantId, requesterId);
     res.json(users);
@@ -184,10 +193,11 @@ router.get('/users', async (req, res) => {
 
 router.put('/users/:targetUserId/role', async (req, res) => {
   try {
+    const authReq = req as unknown as AuthenticatedRequest;
     const { targetUserId } = req.params;
     const { role } = req.body;
-    const updaterUserId = req.user.userId;
-    const tenantId = req.user.tenantId;
+    const updaterUserId = authReq.user.userId;
+    const tenantId = authReq.user.tenantId;
 
     if (!role || !['admin', 'analyst', 'user'].includes(role)) {
       return res.status(400).json({ error: 'Valid role is required' });
@@ -210,9 +220,10 @@ router.put('/users/:targetUserId/role', async (req, res) => {
 
 router.put('/users/:targetUserId/deactivate', async (req, res) => {
   try {
+    const authReq = req as unknown as AuthenticatedRequest;
     const { targetUserId } = req.params;
-    const deactivatorUserId = req.user.userId;
-    const tenantId = req.user.tenantId;
+    const deactivatorUserId = authReq.user.userId;
+    const tenantId = authReq.user.tenantId;
 
     const result = await userManagementService.deactivateUser(
       targetUserId,
@@ -231,8 +242,9 @@ router.put('/users/:targetUserId/deactivate', async (req, res) => {
 // Permission check helper endpoint
 router.post('/check-permission', async (req, res) => {
   try {
-    const userId = req.user.userId;
-    const tenantId = req.user.tenantId;
+    const authReq = req as AuthenticatedRequest;
+    const userId = authReq.user.userId;
+    const tenantId = authReq.user.tenantId;
     const { permission } = req.body;
 
     if (!permission) {

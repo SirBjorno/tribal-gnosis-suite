@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { UserInvitation, UserProfile, UserPermission, ROLE_PERMISSIONS } from '../models/userManagement';
+import { UserInvitation, UserProfile, UserPermission, ROLE_PERMISSIONS, ONBOARDING_STEPS, IUserProfile, IUserPermission } from '../models/userManagement';
 import { User, Tenant } from '../models/index';
 import { sendInvitationEmail } from './emailService';
 
@@ -205,7 +205,7 @@ export class UserManagementService {
   }
 
   // User profile management
-  async updateUserProfile(userId: string, updates: Partial<UserProfile>) {
+  async updateUserProfile(userId: string, updates: Partial<IUserProfile>) {
     try {
       const profile = await UserProfile.findOneAndUpdate(
         { userId },
@@ -300,7 +300,7 @@ export class UserManagementService {
   async updateUserPermissions(
     targetUserId: string, 
     tenantId: string, 
-    newPermissions: Partial<UserPermission['permissions']>,
+    newPermissions: Partial<IUserPermission['permissions']>,
     updaterUserId: string
   ) {
     try {
@@ -353,8 +353,12 @@ export class UserManagementService {
         .sort({ createdAt: -1 });
 
       // Get profiles for additional info
+      const userIds: string[] = [];
+      for (const user of users) {
+        userIds.push(user._id.toString());
+      }
       const userProfiles = await UserProfile.find({ 
-        userId: { $in: users.map(u => u._id) } 
+        userId: { $in: userIds } 
       });
 
       const profileMap = userProfiles.reduce((acc, profile) => {
@@ -362,7 +366,7 @@ export class UserManagementService {
         return acc;
       }, {} as any);
 
-      return users.map(user => ({
+      return users.map((user: any) => ({
         id: user._id,
         name: user.name,
         email: user.email,

@@ -215,7 +215,9 @@ interface IUsageRecord {
   tenantId: mongoose.Types.ObjectId;
   date: Date;
   type: 'transcription' | 'analysis' | 'api_call' | 'storage_update';
-  details: any;
+  minutes?: number; // For transcription usage
+  storage?: number; // For storage usage in bytes
+  details: Record<string, unknown>;
   cost?: number;
 }
 
@@ -231,6 +233,8 @@ const usageRecordSchema = new mongoose.Schema<IUsageRecord>({
     enum: ['transcription', 'analysis', 'api_call', 'storage_update'],
     required: true 
   },
+  minutes: { type: Number, default: 0 },
+  storage: { type: Number, default: 0 },
   details: mongoose.Schema.Types.Mixed,
   cost: Number
 });

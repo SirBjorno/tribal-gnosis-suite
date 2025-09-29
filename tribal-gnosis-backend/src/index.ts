@@ -2,16 +2,16 @@ import express from 'express';
 import type { Request, Response } from 'express';
 import cors from 'cors';
 import * as dotenv from 'dotenv';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI } from '@google/genai';
 import { readFile, writeFile } from 'fs/promises';
 import * as path from 'path';
-import { Tenant, User, KnowledgeItem, UsageRecord, SUBSCRIPTION_TIERS } from './models';
+import { Tenant, User, KnowledgeItem } from './models';
 import { connectDB } from './config/database';
 
 // A simple type for our knowledge bank items for type safety on the backend
 interface KnowledgeBankItem {
   id: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // Type for company response data
@@ -24,7 +24,7 @@ interface CompanyResponse {
   maxStorage: number;
   currentUsers: number;
   currentStorage: number;
-  features: any;
+  features: Record<string, boolean>;
   createdAt: Date;
   isActive: boolean;
 }
@@ -741,6 +741,19 @@ const invitationRoutes = require('./routes/invitations');
 
 app.use('/api/users', userManagementRoutes);
 app.use('/api/invitations', invitationRoutes);
+
+// --- Analytics API Endpoints ---
+const { getAnalytics, getGlobalAnalytics } = require('./services/analyticsService');
+
+// Get tenant-specific analytics
+app.get('/api/analytics/:tenantId', async (req: Request, res: Response) => {
+    await getAnalytics(req, res);
+});
+
+// Get global analytics (admin only)
+app.get('/api/analytics', async (req: Request, res: Response) => {
+    await getGlobalAnalytics(req, res);
+});
 
 app.listen(port, async () => {
     console.log(`[server]: Tribal Gnosis backend is running at http://localhost:${port}`);
