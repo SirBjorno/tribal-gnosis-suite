@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "tribal-gnosis": {
+      "command": "node",
+      "args": [
+        "./dist/index.js"
+      ],
+      "cwd": "./mcp-server",
+      "env": {
+        "RENDER_API_KEY": "your_render_api_key_here",
+        "RENDER_SERVICE_ID_BACKEND": "your_backend_service_id",
+        "RENDER_SERVICE_ID_FRONTEND": "your_frontend_service_id",
+        "TRIBAL_GNOSIS_API_URL": "https://tribal-gnosis-backend.onrender.com",
+        "TRIBAL_GNOSIS_FRONTEND_URL": "https://tribal-gnosis-frontend.onrender.com",
+        "LOG_LEVEL": "info"
+      }
+    }
+  }
+}
