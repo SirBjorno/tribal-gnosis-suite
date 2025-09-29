@@ -1,7 +1,24 @@
 import mongoose from 'mongoose';
 
-// Subscription tier definitions
-const SUBSCRIPTION_TIERS = {
+// Subscription tier definitions with explicit typing
+type SubscriptionTier = {
+  name: string;
+  price: number;
+  minutesPerMonth: number;
+  maxCompanies: number;
+  maxUsers: number;
+  storageGB: number;
+  features: {
+    transcription: boolean;
+    analysis: boolean;
+    knowledgeBase: boolean;
+    apiAccess: boolean;
+    customModels: boolean;
+    whiteLabel: boolean;
+  };
+};
+
+const SUBSCRIPTION_TIERS: Record<string, SubscriptionTier> = {
   STARTER: {
     name: 'Starter',
     price: 0,
@@ -194,7 +211,15 @@ knowledgeItemSchema.index({
 });
 
 // Usage tracking schema for detailed analytics
-const usageRecordSchema = new mongoose.Schema({
+interface IUsageRecord {
+  tenantId: mongoose.Types.ObjectId;
+  date: Date;
+  type: 'transcription' | 'analysis' | 'api_call' | 'storage_update';
+  details: any;
+  cost?: number;
+}
+
+const usageRecordSchema = new mongoose.Schema<IUsageRecord>({
   tenantId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Tenant',
@@ -206,17 +231,23 @@ const usageRecordSchema = new mongoose.Schema({
     enum: ['transcription', 'analysis', 'api_call', 'storage_update'],
     required: true 
   },
-  details: {
-    minutes: Number, // for transcription
-    apiEndpoint: String, // for API calls
-    storageDelta: Number, // for storage changes
-    metadata: mongoose.Schema.Types.Mixed // flexible additional data
-  },
-  cost: Number // estimated cost in cents
+  details: mongoose.Schema.Types.Mixed,
+  cost: Number
 });
 
 // Billing event schema for Stripe webhooks
-const billingEventSchema = new mongoose.Schema({
+interface IBillingEvent {
+  tenantId: mongoose.Types.ObjectId;
+  stripeEventId?: string;
+  eventType?: string;
+  amount?: number;
+  currency: string;
+  status?: string;
+  createdAt: Date;
+  metadata?: any;
+}
+
+const billingEventSchema = new mongoose.Schema<IBillingEvent>({
   tenantId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Tenant',
@@ -224,7 +255,7 @@ const billingEventSchema = new mongoose.Schema({
   },
   stripeEventId: { type: String, unique: true },
   eventType: String,
-  amount: Number, // in cents
+  amount: Number,
   currency: { type: String, default: 'usd' },
   status: String,
   createdAt: { type: Date, default: Date.now },
@@ -258,7 +289,7 @@ knowledgeItemSchema.pre('find', function(this: any) {
 export { SUBSCRIPTION_TIERS };
 
 export const Tenant = mongoose.model('Tenant', tenantSchema);
-export const User = mongoose.model('User', userSchema);
+export const User = mongoose.model('User', userSchema);  
 export const KnowledgeItem = mongoose.model('KnowledgeItem', knowledgeItemSchema);
-export const UsageRecord = mongoose.model('UsageRecord', usageRecordSchema);
-export const BillingEvent = mongoose.model('BillingEvent', billingEventSchema);
+export const UsageRecord = mongoose.model<IUsageRecord>('UsageRecord', usageRecordSchema);
+export const BillingEvent = mongoose.model<IBillingEvent>('BillingEvent', billingEventSchema);

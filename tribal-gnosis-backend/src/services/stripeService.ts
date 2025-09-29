@@ -4,7 +4,7 @@ import { SUBSCRIPTION_TIERS } from '../models/index';
 
 // Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2024-06-20',
+  apiVersion: '2025-08-27.basil',
 });
 
 // Stripe Price IDs for each tier (these would be created in Stripe Dashboard)
@@ -67,16 +67,16 @@ export const createSubscription = async (tenantId: string, priceId: string) => {
 
     // Update tenant subscription info
     tenant.subscription.stripeSubscriptionId = subscription.id;
-    tenant.subscription.status = subscription.status;
-    tenant.subscription.currentPeriodStart = new Date(subscription.current_period_start * 1000);
-    tenant.subscription.currentPeriodEnd = new Date(subscription.current_period_end * 1000);
+    tenant.subscription.status = subscription.status as any;
+    tenant.subscription.currentPeriodStart = new Date((subscription as any).current_period_start * 1000);
+    tenant.subscription.currentPeriodEnd = new Date((subscription as any).current_period_end * 1000);
 
     // Update tier based on price ID
     const tier = Object.keys(STRIPE_PRICE_IDS).find(
       key => STRIPE_PRICE_IDS[key as keyof typeof STRIPE_PRICE_IDS] === priceId
     );
     if (tier) {
-      tenant.subscription.tier = tier;
+      tenant.subscription.tier = tier as any;
     }
 
     await tenant.save();
@@ -116,8 +116,8 @@ export const updateSubscription = async (tenantId: string, newTier: string) => {
     });
 
     // Update tenant
-    tenant.subscription.tier = newTier;
-    tenant.subscription.status = updatedSubscription.status;
+    tenant.subscription.tier = newTier as any;
+    tenant.subscription.status = updatedSubscription.status as any;
     await tenant.save();
 
     return updatedSubscription;
@@ -178,8 +178,8 @@ export const getSubscriptionDetails = async (tenantId: string) => {
     return {
       tier: tenant.subscription.tier,
       status: subscription.status,
-      currentPeriodStart: new Date(subscription.current_period_start * 1000),
-      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      currentPeriodStart: new Date((subscription as any).current_period_start * 1000),
+      currentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
       cancelAtPeriodEnd: subscription.cancel_at_period_end,
       usage: tenant.usage.currentPeriod,
       latestInvoice: subscription.latest_invoice
@@ -255,7 +255,7 @@ export const handleWebhook = async (event: Stripe.Event) => {
 // Helper functions for webhook handling
 const handlePaymentSucceeded = async (event: Stripe.Event) => {
   const invoice = event.data.object as Stripe.Invoice;
-  const subscriptionId = invoice.subscription as string;
+  const subscriptionId = (invoice as any).subscription as string;
   
   if (subscriptionId) {
     const tenant = await Tenant.findOne({ 
@@ -271,7 +271,7 @@ const handlePaymentSucceeded = async (event: Stripe.Event) => {
 
 const handlePaymentFailed = async (event: Stripe.Event) => {
   const invoice = event.data.object as Stripe.Invoice;
-  const subscriptionId = invoice.subscription as string;
+  const subscriptionId = (invoice as any).subscription as string;
   
   if (subscriptionId) {
     const tenant = await Tenant.findOne({ 
@@ -293,10 +293,10 @@ const handleSubscriptionUpdated = async (event: Stripe.Event) => {
   });
   
   if (tenant) {
-    tenant.subscription.status = subscription.status;
-    tenant.subscription.currentPeriodStart = new Date(subscription.current_period_start * 1000);
-    tenant.subscription.currentPeriodEnd = new Date(subscription.current_period_end * 1000);
-    tenant.subscription.cancelAtPeriodEnd = subscription.cancel_at_period_end;
+    tenant.subscription.status = subscription.status as any;
+    tenant.subscription.currentPeriodStart = new Date((subscription as any).current_period_start * 1000);
+    tenant.subscription.currentPeriodEnd = new Date((subscription as any).current_period_end * 1000);
+    tenant.subscription.cancelAtPeriodEnd = (subscription as any).cancel_at_period_end;
     
     await tenant.save();
   }
