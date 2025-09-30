@@ -1,12 +1,26 @@
 import express from 'express';
 import type { Request, Response } from 'express';
 import cors from 'cors';
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
+import { body, validationResult } from 'express-validator';
 import * as dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
 import { readFile, writeFile } from 'fs/promises';
 import * as path from 'path';
 import { Tenant, User, KnowledgeItem } from './models';
 import { connectDB } from './config/database';
+import { 
+  validatePasswordStrength, 
+  hashPassword, 
+  comparePassword, 
+  trackFailedLogin, 
+  clearFailedLogins, 
+  isAccountLocked,
+  logSecurityEvent as logSec,
+  detectSuspiciousActivity,
+  getSecurityConfig 
+} from './utils/security';
 
 // A simple type for our knowledge bank items for type safety on the backend
 interface KnowledgeBankItem {
@@ -84,6 +98,124 @@ const writeDatabase = async (data: Database): Promise<void> => {
     }
 };
 
+// Security Middleware
+app.set('trust proxy', 1); // Trust first proxy for rate limiting
+
+// Security headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      connectSrc: ["'self'", 'https://api.stripe.com'],
+      frameSrc: ["'none'"],
+      objectSrc: ["'none'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false, // Allows embedding for Stripe
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true,
+  },
+}));
+
+// Rate limiting for general API endpoints
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: {
+    error: 'Too many requests from this IP, please try again later.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Strict rate limiting for authentication endpoints
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // limit each IP to 5 requests per windowMs for auth
+  message: {
+    error: 'Too many login attempts from this IP, please try again later.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true,
+});
+
+// Input sanitization middleware
+const sanitizeInput = (req: Request, res: Response, next: Function) => {
+  const sanitize = (obj: any): any => {
+    if (typeof obj === 'string') {
+      return obj
+        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+        .replace(/javascript:/gi, '')
+        .replace(/on\w+\s*=/gi, '')
+        .trim();
+    }
+    if (typeof obj === 'object' && obj !== null) {
+      const sanitized: any = {};
+      for (const key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          sanitized[key] = sanitize(obj[key]);
+        }
+      }
+      return sanitized;
+    }
+    return obj;
+  };
+
+  if (req.body) req.body = sanitize(req.body);
+  if (req.query) req.query = sanitize(req.query);
+  if (req.params) req.params = sanitize(req.params);
+  
+  next();
+};
+
+// Validation middleware
+const handleValidationErrors = (req: Request, res: Response, next: Function) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      error: 'Validation failed',
+      details: errors.array(),
+    });
+  }
+  next();
+};
+
+// Security event logger
+const logSecurityEvent = (event: string, details: any, req: Request) => {
+  const securityLog = {
+    timestamp: new Date().toISOString(),
+    event,
+    ip: req.ip || req.connection.remoteAddress,
+    userAgent: req.get('User-Agent'),
+    path: req.path,
+    method: req.method,
+    details,
+  };
+  console.warn('SECURITY EVENT:', JSON.stringify(securityLog, null, 2));
+};
+
+// HTTPS enforcement for production
+if (process.env.NODE_ENV === 'production') {
+  app.use((req: Request, res: Response, next: Function) => {
+    if (req.header('x-forwarded-proto') !== 'https') {
+      res.redirect(`https://${req.header('host')}${req.url}`);
+    } else {
+      next();
+    }
+  });
+}
+
+// Apply general middleware
+app.use(generalLimiter);
+app.use(sanitizeInput);
+
 // Middlewares
 app.use(cors({
   origin: ['https://tribal-gnosis-frontend.onrender.com', 'http://localhost:3000'],
@@ -107,7 +239,7 @@ const knowledgeSearchSchema = { /* ... Omitted for brevity ... */ };
 
 // --- NEW Authentication Endpoints ---
 
-app.post('/api/auth/validate-company', async (req: Request, res: Response) => {
+app.post('/api/auth/validate-company', authLimiter, async (req: Request, res: Response) => {
   try {
 
     const { companyCode } = req.body;
@@ -135,7 +267,7 @@ app.post('/api/auth/validate-company', async (req: Request, res: Response) => {
 });
 
 // FIX: Use direct `Request` and `Response` types from Express to fix type errors.
-app.post('/api/auth/signup', async (req: Request, res: Response) => {
+app.post('/api/auth/signup', authLimiter, async (req: Request, res: Response) => {
     const { name, email, password, companyCode } = req.body;
 
     if (!name || !email || !password || !companyCode) {
@@ -177,27 +309,72 @@ app.post('/api/auth/signup', async (req: Request, res: Response) => {
 });
 
 
-app.post('/api/auth/login', async (req: Request, res: Response) => {
+app.post('/api/auth/login', 
+    authLimiter,
+    [
+        body('email').isEmail().normalizeEmail().withMessage('Must be a valid email address'),
+        body('password').notEmpty().withMessage('Password is required'),
+    ],
+    handleValidationErrors,
+    async (req: Request, res: Response) => {
     try {
-
         const { email, password } = req.body;
+        const lowercaseEmail = email.toLowerCase();
+        const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
 
-        if (!email || !password) {
-            return res.status(400).json({ message: "Email and password are required." });
+        // Check for suspicious activity
+        if (detectSuspiciousActivity(req, lowercaseEmail)) {
+            logSec('SUSPICIOUS_ACTIVITY', req, { email: lowercaseEmail });
+            return res.status(429).json({ 
+                message: "Suspicious activity detected. Please try again later." 
+            });
         }
 
-        const user = await User.findOne({ email: email.toLowerCase() });
+        // Check if account is locked
+        if (isAccountLocked(lowercaseEmail) || isAccountLocked(clientIP)) {
+            logSec('LOGIN_FAILURE', req, { email: lowercaseEmail, reason: 'Account locked' });
+            return res.status(423).json({ 
+                message: "Account temporarily locked due to multiple failed login attempts. Please try again later." 
+            });
+        }
+
+        const user = await User.findOne({ email: lowercaseEmail });
         if (!user) {
-            return res.status(401).json({ message: "Invalid credentials." });
+            const lockoutInfo = trackFailedLogin(lowercaseEmail);
+            trackFailedLogin(clientIP);
+            logSec('LOGIN_FAILURE', req, { email: lowercaseEmail, reason: 'User not found' });
+            
+            return res.status(401).json({ 
+                message: "Invalid credentials.",
+                ...(lockoutInfo.attemptsLeft <= 2 && {
+                    warning: `${lockoutInfo.attemptsLeft} attempts remaining before account lockout.`
+                })
+            });
         }
 
-        // Compare hashed password
-        const bcrypt = require('bcryptjs');
-        const isValidPassword = await bcrypt.compare(password, user.password);
+        // Use enhanced password comparison
+        const isValidPassword = await comparePassword(password, user.password);
         
         if (!isValidPassword) {
-            return res.status(401).json({ message: "Invalid credentials." });
+            const lockoutInfo = trackFailedLogin(lowercaseEmail);
+            trackFailedLogin(clientIP);
+            logSec('LOGIN_FAILURE', req, { 
+                email: lowercaseEmail, 
+                userId: user._id.toString(),
+                reason: 'Invalid password' 
+            });
+            
+            return res.status(401).json({ 
+                message: "Invalid credentials.",
+                ...(lockoutInfo.attemptsLeft <= 2 && {
+                    warning: `${lockoutInfo.attemptsLeft} attempts remaining before account lockout.`
+                })
+            });
         }
+
+        // Clear failed login attempts on successful login
+        clearFailedLogins(lowercaseEmail);
+        clearFailedLogins(clientIP);
 
         // Get tenant info
         const tenant = await Tenant.findById(user.tenantId);
@@ -205,10 +382,32 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
             return res.status(500).json({ message: "User tenant not found." });
         }
 
+        // Generate secure JWT token
+        const jwt = require('jsonwebtoken');
+        const config = getSecurityConfig();
+        const token = jwt.sign(
+            { 
+                userId: user._id,
+                email: user.email,
+                role: user.role,
+                tenantId: user.tenantId 
+            },
+            process.env.JWT_SECRET || 'your-secret-key',
+            { expiresIn: config.jwtExpiresIn }
+        );
+
+        // Log successful login
+        logSec('LOGIN_SUCCESS', req, { 
+            email: lowercaseEmail, 
+            userId: user._id.toString(),
+            tenantId: tenant._id.toString() 
+        });
+
         // Return user without password
         const { password: _, ...userWithoutPassword } = user.toObject();
         res.status(200).json({ 
             ...userWithoutPassword, 
+            token,
             tenant: {
                 id: tenant._id,
                 name: tenant.name,
