@@ -849,15 +849,65 @@ app.get('/api/usage/:tenantId', async (req: Request, res: Response) => {
             date: { $gte: thirtyDaysAgo }
         }).sort({ date: -1 }).limit(100);
         
+        // Calculate real-time storage usage
+        const knowledgeItems = await KnowledgeItem.find({ tenantId });
+        let totalBytes = 0;
+        let contentBytes = 0;
+        let transcriptionBytes = 0;
+        let analysisBytes = 0;
+        
+        for (const item of knowledgeItems) {
+            if (item.content) {
+                const size = Buffer.byteLength(item.content, 'utf8');
+                contentBytes += size;
+                totalBytes += size;
+            }
+            if (item.transcription?.text) {
+                const size = Buffer.byteLength(item.transcription.text, 'utf8');
+                transcriptionBytes += size;
+                totalBytes += size;
+            }
+            if (item.analysis?.summary) {
+                const size = Buffer.byteLength(item.analysis.summary, 'utf8');
+                analysisBytes += size;
+                totalBytes += size;
+            }
+            if (item.analysis?.keyPoints) {
+                const size = Buffer.byteLength(item.analysis.keyPoints.join(' '), 'utf8');
+                analysisBytes += size;
+                totalBytes += size;
+            }
+            totalBytes += 200; // metadata overhead
+        }
+        
+        const storageMB = totalBytes / 1024 / 1024;
+        const storageGB = storageMB / 1024;
+        
+        // Get tier limits
+        const { SUBSCRIPTION_TIERS } = require('./models/index');
+        const tierData = SUBSCRIPTION_TIERS[tenant.subscription?.tier || 'STARTER'];
+        const storagePercentage = Math.round((storageMB / (tierData.storageGB * 1024)) * 100);
+        
         // Calculate usage percentages
         const minutesPercentage = getUsagePercentage(tenant, 'minutes');
-        const storagePercentage = getUsagePercentage(tenant, 'storage');
         
         res.status(200).json({
             currentPeriod: currentUsage,
             usagePercentages: {
                 minutes: minutesPercentage,
                 storage: storagePercentage
+            },
+            storageDetails: {
+                totalMB: Math.round(storageMB * 100) / 100,
+                totalGB: Math.round(storageGB * 1000) / 1000,
+                breakdown: {
+                    contentMB: Math.round((contentBytes / 1024 / 1024) * 100) / 100,
+                    transcriptionMB: Math.round((transcriptionBytes / 1024 / 1024) * 100) / 100,
+                    analysisMB: Math.round((analysisBytes / 1024 / 1024) * 100) / 100
+                },
+                itemCount: knowledgeItems.length,
+                limitGB: tierData.storageGB,
+                overageGB: storageGB > tierData.storageGB ? Math.round((storageGB - tierData.storageGB) * 1000) / 1000 : 0
             },
             history: usageHistory,
             subscription: {
