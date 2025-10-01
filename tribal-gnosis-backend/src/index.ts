@@ -8,7 +8,18 @@ import * as dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
 import { readFile, writeFile } from 'fs/promises';
 import * as path from 'path';
+import multer from 'multer';
 import { Tenant, User, KnowledgeItem } from './models';
+import { cloudStorageService } from './services/cloudStorageService';
+
+// Configure multer for file uploads
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: { 
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+    files: 1 // Only one file at a time
+  }
+});
 import { connectDB } from './config/database';
 import { 
   validatePasswordStrength, 
@@ -1070,34 +1081,55 @@ app.post('/api/admin/storage/cleanup', async (req: Request, res: Response) => {
 
 // --- FILE UPLOAD ENDPOINTS ---
 
-// Upload file endpoint (requires multer for file handling)
-app.post('/api/files/upload/:tenantId', async (req: Request, res: Response) => {
-  try {
-    // Note: This is a placeholder - you'll need to add multer middleware for actual file uploads
-    // For now, we'll create a simple text file upload endpoint
-    const { tenantId } = req.params;
-    const { fileName, content, contentType = 'text/plain' } = req.body;
-    
-    if (!fileName || !content) {
-      return res.status(400).json({ message: 'fileName and content are required' });
-    }
-
-    // Convert content to buffer
-    const buffer = Buffer.from(content, 'utf8');
-    
-    // For now, we'll store this as a knowledge item until Google Cloud Storage is fully set up
-    const newItem = new KnowledgeItem({
-      tenantId,
-      title: fileName,
-      content,
-      category: 'uploaded-file',
-      createdBy: req.body.userId || null, // You'll need to get this from auth middleware
-      metadata: {
-        source: 'file-upload',
-        contentType,
-        size: buffer.length
+// Enhanced file upload endpoint with Google Cloud Storage support
+app.post('/api/files/upload/:tenantId', 
+  upload.single('file'),
+  async (req: Request, res: Response) => {
+    try {
+      const { tenantId } = req.params;
+      const file = req.file;
+      
+      if (!file) {
+        return res.status(400).json({ message: 'No file provided' });
       }
-    });
+
+      let fileResult;
+      let storageLocation = 'mongodb'; // fallback storage
+      
+      // Try Google Cloud Storage first if configured
+      if (process.env.GOOGLE_CLOUD_PROJECT_ID && process.env.GOOGLE_CLOUD_STORAGE_BUCKET) {
+        try {
+          fileResult = await cloudStorageService.uploadFile(
+            file.buffer,
+            file.originalname,
+            file.mimetype,
+            tenantId,
+            'documents'
+          );
+          storageLocation = 'gcs';
+        } catch (error: any) {
+          console.warn('Google Cloud Storage upload failed, using MongoDB fallback:', error.message);
+        }
+      }
+      
+      // Create knowledge item with storage location info
+      const newItem = new KnowledgeItem({
+        tenantId,
+        title: file.originalname,
+        content: fileResult?.publicUrl || 'File content stored in Google Cloud Storage',
+        category: 'uploaded-file',
+        createdBy: req.body.userId || null,
+        metadata: {
+          source: 'file-upload',
+          contentType: file.mimetype,
+          size: file.size,
+          storageLocation,
+          ...(fileResult && {
+            gcsPath: fileResult.filePath,
+            publicUrl: fileResult.publicUrl
+          })
+        }
+      });
     
     await newItem.save();
     
@@ -1105,10 +1137,15 @@ app.post('/api/files/upload/:tenantId', async (req: Request, res: Response) => {
       message: 'File uploaded successfully',
       file: {
         id: newItem._id,
-        fileName,
-        size: buffer.length,
-        contentType,
-        uploadedAt: newItem.createdAt
+        name: file.originalname,
+        size: file.size,
+        contentType: file.mimetype,
+        storageLocation,
+        uploadedAt: newItem.createdAt,
+        ...(fileResult && {
+          publicUrl: fileResult.publicUrl,
+          gcsPath: fileResult.filePath
+        })
       }
     });
   } catch (error) {
@@ -1359,7 +1396,22 @@ app.listen(port, async () => {
     console.log(`[server]: Tribal Gnosis backend is running at http://localhost:${port}`);
     try {
         await connectDB();
+        console.log('✅ Database connected successfully');
+        
+        // Initialize Google Cloud Storage if configured
+        if (process.env.GOOGLE_CLOUD_PROJECT_ID && process.env.GOOGLE_CLOUD_STORAGE_BUCKET) {
+          try {
+            await cloudStorageService.initializeBucket();
+            console.log('✅ Google Cloud Storage initialized successfully');
+          } catch (error: any) {
+            console.warn('⚠️  Google Cloud Storage initialization failed:', error.message);
+            console.log('📁 File uploads will use local storage fallback');
+          }
+        } else {
+          console.log('📁 Google Cloud Storage not configured - using local storage fallback');
+        }
     } catch (error) {
-        console.error('Failed to connect to database:', error);
+        console.error('❌ Failed to connect to database:', error);
+        process.exit(1);
     }
 });
