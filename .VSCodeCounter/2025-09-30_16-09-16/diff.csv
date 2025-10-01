@@ -1,0 +1,30 @@
+"filename", "language", "TypeScript", "JSON", "Markdown", "JSON with Comments", "JavaScript", "Batch", "comment", "blank", "total"
+"c:\Users\anieu\tribal-gnosis-live\SECURITY.md", "Markdown", 0, 0, 180, 0, 0, 0, 0, 49, 229
+"c:\Users\anieu\tribal-gnosis-live\mcp-server\DEPLOYMENT.md", "Markdown", 0, 0, 205, 0, 0, 0, 0, 64, 269
+"c:\Users\anieu\tribal-gnosis-live\mcp-server\README.md", "Markdown", 0, 0, 207, 0, 0, 0, 0, 56, 263
+"c:\Users\anieu\tribal-gnosis-live\mcp-server\cli.js", "JavaScript", 0, 0, 0, 0, 55, 0, 4, 12, 71
+"c:\Users\anieu\tribal-gnosis-live\mcp-server\mcp-client-config.json", "JSON", 0, 19, 0, 0, 0, 0, 0, 0, 19
+"c:\Users\anieu\tribal-gnosis-live\mcp-server\mcp-start.js", "JavaScript", 0, 0, 0, 0, 5, 0, 3, 3, 11
+"c:\Users\anieu\tribal-gnosis-live\mcp-server\package-lock.json", "JSON", 0, 2580, 0, 0, 0, 0, 0, 1, 2581
+"c:\Users\anieu\tribal-gnosis-live\mcp-server\package-simple.json", "JSON", 0, 15, 0, 0, 0, 0, 0, 0, 15
+"c:\Users\anieu\tribal-gnosis-live\mcp-server\package.json", "JSON", 0, 44, 0, 0, 0, 0, 0, 0, 44
+"c:\Users\anieu\tribal-gnosis-live\mcp-server\run-mcp.bat", "Batch", 0, 0, 0, 0, 0, 3, 0, 0, 3
+"c:\Users\anieu\tribal-gnosis-live\mcp-server\simple-server.cjs", "JavaScript", 0, 0, 0, 0, 161, 0, 1, 15, 177
+"c:\Users\anieu\tribal-gnosis-live\mcp-server\simple-server.js", "JavaScript", 0, 0, 0, 0, 161, 0, 1, 15, 177
+"c:\Users\anieu\tribal-gnosis-live\mcp-server\src\index.ts", "TypeScript", 530, 0, 0, 0, 0, 0, 22, 63, 615
+"c:\Users\anieu\tribal-gnosis-live\mcp-server\src\services\health.ts", "TypeScript", 281, 0, 0, 0, 0, 0, 10, 54, 345
+"c:\Users\anieu\tribal-gnosis-live\mcp-server\src\services\metrics.ts", "TypeScript", 312, 0, 0, 0, 0, 0, 6, 70, 388
+"c:\Users\anieu\tribal-gnosis-live\mcp-server\src\services\monitor.ts", "TypeScript", 229, 0, 0, 0, 0, 0, 11, 41, 281
+"c:\Users\anieu\tribal-gnosis-live\mcp-server\src\services\render.ts", "TypeScript", 355, 0, 0, 0, 0, 0, 3, 55, 413
+"c:\Users\anieu\tribal-gnosis-live\mcp-server\src\test.ts", "TypeScript", 44, 0, 0, 0, 0, 0, 9, 12, 65
+"c:\Users\anieu\tribal-gnosis-live\mcp-server\src\utils\logger.ts", "TypeScript", 45, 0, 0, 0, 0, 0, 0, 6, 51
+"c:\Users\anieu\tribal-gnosis-live\mcp-server\start.mjs", "JavaScript", 0, 0, 0, 0, 8, 0, 3, 4, 15
+"c:\Users\anieu\tribal-gnosis-live\mcp-server\tsconfig.json", "JSON with Comments", 0, 0, 0, 27, 0, 0, 0, 0, 27
+"c:\Users\anieu\tribal-gnosis-live\mcp-server\wrapper.js", "JavaScript", 0, 0, 0, 0, 21, 0, 3, 5, 29
+"c:\Users\anieu\tribal-gnosis-live\package-lock.json", "JSON", 0, 76, 0, 0, 0, 0, 0, 0, 76
+"c:\Users\anieu\tribal-gnosis-live\tribal-gnosis-backend\package.json", "JSON", 0, 4, 0, 0, 0, 0, 0, 0, 4
+"c:\Users\anieu\tribal-gnosis-live\tribal-gnosis-backend\src\index.ts", "TypeScript", 169, 0, 0, 0, 0, 0, 14, 16, 199
+"c:\Users\anieu\tribal-gnosis-live\tribal-gnosis-backend\src\middleware\security.ts", "TypeScript", 198, 0, 0, 0, 0, 0, 16, 23, 237
+"c:\Users\anieu\tribal-gnosis-live\tribal-gnosis-backend\src\middleware\securityMiddleware.ts", "TypeScript", 206, 0, 0, 0, 0, 0, 12, 19, 237
+"c:\Users\anieu\tribal-gnosis-live\tribal-gnosis-backend\src\utils\security.ts", "TypeScript", 157, 0, 0, 0, 0, 0, 17, 39, 213
+"Total", "-", 2526, 2738, 592, 27, 411, 3, 135, 622, 7054
