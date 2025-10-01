@@ -21,6 +21,7 @@ import {
   detectSuspiciousActivity,
   getSecurityConfig 
 } from './utils/security';
+// import StorageUsageService from './services/storageUsageService';
 
 // A simple type for our knowledge bank items for type safety on the backend
 interface KnowledgeBankItem {
@@ -813,6 +814,15 @@ app.delete('/api/subscription/:tenantId', async (req: Request, res: Response) =>
         console.error('Error canceling subscription:', error);
         res.status(500).json({ message: 'Failed to cancel subscription' });
     }
+});
+
+// Test endpoint to verify new deployments are working
+app.get('/api/test/storage-ready', (_req: Request, res: Response) => {
+  res.json({ 
+    message: 'Storage management system ready for implementation',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  });
 });
 
 // Get usage statistics for tenant
