@@ -862,8 +862,8 @@ app.get('/api/admin/storage/overview', async (req: Request, res: Response) => {
       totalRevenue += overageRevenue;
       if (overageGB > 0) totalOverages++;
       
-      storageAnalytics.push({
-        tenantId: tenant._id,
+      const analyticsItem = {
+        tenantId: tenant._id.toString(),
         tenantName: tenant.name,
         companyCode: tenant.companyCode,
         subscription: {
@@ -882,8 +882,9 @@ app.get('/api/admin/storage/overview', async (req: Request, res: Response) => {
           legacy: legacyItems.length,
           total: mongoItems.length + legacyItems.length
         },
-        lastUpdated: new Date()
-      });
+        lastUpdated: new Date().toISOString()
+      };
+      storageAnalytics.push(analyticsItem);
     }
 
     // Sort by usage percentage (highest first)
@@ -1119,8 +1120,8 @@ app.get('/api/files/:tenantId', async (req: Request, res: Response) => {
     const files = fileItems.map(item => ({
       id: item._id,
       name: item.title,
-      size: item.metadata?.size || 0,
-      contentType: item.metadata?.contentType || 'text/plain',
+      size: (item.metadata as any)?.size || 0,
+      contentType: (item.metadata as any)?.contentType || 'text/plain',
       uploadedAt: item.createdAt,
       category: 'documents'
     }));
