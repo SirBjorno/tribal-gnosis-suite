@@ -274,14 +274,6 @@ usageRecordSchema.index({ type: 1, date: -1 });
 billingEventSchema.index({ tenantId: 1, createdAt: -1 });
 billingEventSchema.index({ stripeEventId: 1 });
 
-userSchema.index({ tenantId: 1 });
-knowledgeItemSchema.index({ tenantId: 1 });
-knowledgeItemSchema.index({ 
-  title: 'text', 
-  content: 'text', 
-  tags: 'text' 
-});
-
 // Middleware to enforce tenant isolation
 knowledgeItemSchema.pre('find', function(this: any) {
   if (!this.getQuery().tenantId) {

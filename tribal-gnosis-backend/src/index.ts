@@ -849,14 +849,22 @@ app.get('/api/usage/:tenantId', async (req: Request, res: Response) => {
             date: { $gte: thirtyDaysAgo }
         }).sort({ date: -1 }).limit(100);
         
-        // Calculate real-time storage usage
+        // Calculate real-time storage usage (MongoDB + Legacy JSON)
         const knowledgeItems = await KnowledgeItem.find({ tenantId });
+        
+        // Also check legacy JSON storage
+        const db = await readDatabase();
+        const legacyItems = db.knowledgeBank[tenantId] || [];
+        
         let totalBytes = 0;
         let contentBytes = 0;
         let transcriptionBytes = 0;
         let analysisBytes = 0;
+        let totalItemCount = 0;
         
+        // Process MongoDB items
         for (const item of knowledgeItems) {
+            totalItemCount++;
             if (item.content) {
                 const size = Buffer.byteLength(item.content, 'utf8');
                 contentBytes += size;
@@ -878,6 +886,16 @@ app.get('/api/usage/:tenantId', async (req: Request, res: Response) => {
                 totalBytes += size;
             }
             totalBytes += 200; // metadata overhead
+        }
+        
+        // Process legacy JSON items
+        for (const item of legacyItems) {
+            totalItemCount++;
+            const itemString = JSON.stringify(item);
+            const itemSize = Buffer.byteLength(itemString, 'utf8');
+            contentBytes += itemSize;
+            totalBytes += itemSize;
+            totalBytes += 150; // metadata overhead for legacy items
         }
         
         const storageMB = totalBytes / 1024 / 1024;
@@ -905,7 +923,7 @@ app.get('/api/usage/:tenantId', async (req: Request, res: Response) => {
                     transcriptionMB: Math.round((transcriptionBytes / 1024 / 1024) * 100) / 100,
                     analysisMB: Math.round((analysisBytes / 1024 / 1024) * 100) / 100
                 },
-                itemCount: knowledgeItems.length,
+                itemCount: totalItemCount,
                 limitGB: tierData.storageGB,
                 overageGB: storageGB > tierData.storageGB ? Math.round((storageGB - tierData.storageGB) * 1000) / 1000 : 0
             },
