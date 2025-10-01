@@ -21,7 +21,6 @@ import {
   detectSuspiciousActivity,
   getSecurityConfig 
 } from './utils/security';
-// import StorageUsageService from './services/storageUsageService';
 
 // A simple type for our knowledge bank items for type safety on the backend
 interface KnowledgeBankItem {
