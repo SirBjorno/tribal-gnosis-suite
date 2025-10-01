@@ -815,13 +815,321 @@ app.delete('/api/subscription/:tenantId', async (req: Request, res: Response) =>
     }
 });
 
-// Test endpoint to verify new deployments are working
-app.get('/api/test/storage-ready', (_req: Request, res: Response) => {
-  res.json({ 
-    message: 'Storage management system ready for implementation',
-    timestamp: new Date().toISOString(),
-    version: '1.0.0'
-  });
+// --- ADMIN DASHBOARD ENDPOINTS ---
+
+// Admin: Get comprehensive storage overview across all tenants
+app.get('/api/admin/storage/overview', async (req: Request, res: Response) => {
+  try {
+    const tenants = await Tenant.find({}).populate('subscription');
+    const storageAnalytics = [];
+    let totalStorageUsed = 0;
+    let totalRevenue = 0;
+    let totalOverages = 0;
+
+    for (const tenant of tenants) {
+      // Calculate storage for each tenant (both MongoDB and legacy)
+      const mongoItems = await KnowledgeItem.find({ tenantId: tenant._id });
+      const legacyData = await readDatabase();
+      const legacyItems = legacyData.knowledgeBank[tenant._id.toString()] || [];
+      
+      let totalBytes = 0;
+      
+      // Calculate MongoDB storage
+      for (const item of mongoItems) {
+        if (item.content) totalBytes += Buffer.byteLength(item.content, 'utf8');
+        if (item.transcription?.text) totalBytes += Buffer.byteLength(item.transcription.text, 'utf8');
+        if (item.analysis?.summary) totalBytes += Buffer.byteLength(item.analysis.summary, 'utf8');
+        totalBytes += 200; // metadata overhead
+      }
+      
+      // Calculate legacy storage
+      for (const item of legacyItems) {
+        if (item.content) totalBytes += Buffer.byteLength(JSON.stringify(item.content), 'utf8');
+        totalBytes += 150; // metadata overhead
+      }
+      
+      const storageMB = totalBytes / 1024 / 1024;
+      const storageGB = storageMB / 1024;
+      
+      // Get tier limits
+      const { SUBSCRIPTION_TIERS } = require('./models/index');
+      const tierData = SUBSCRIPTION_TIERS[tenant.subscription?.tier || 'STARTER'];
+      const usagePercent = (storageMB / (tierData.storageGB * 1024)) * 100;
+      const overageGB = storageGB > tierData.storageGB ? storageGB - tierData.storageGB : 0;
+      const overageRevenue = overageGB * 0.10; // $0.10 per GB overage
+      
+      totalStorageUsed += storageGB;
+      totalRevenue += overageRevenue;
+      if (overageGB > 0) totalOverages++;
+      
+      storageAnalytics.push({
+        tenantId: tenant._id,
+        tenantName: tenant.name,
+        companyCode: tenant.companyCode,
+        subscription: {
+          tier: tenant.subscription?.tier || 'STARTER',
+          status: tenant.subscription?.status || 'active'
+        },
+        storage: {
+          usedGB: Math.round(storageGB * 1000) / 1000,
+          limitGB: tierData.storageGB,
+          usagePercent: Math.round(usagePercent),
+          overageGB: Math.round(overageGB * 1000) / 1000,
+          overageRevenue: Math.round(overageRevenue * 100) / 100
+        },
+        items: {
+          mongodb: mongoItems.length,
+          legacy: legacyItems.length,
+          total: mongoItems.length + legacyItems.length
+        },
+        lastUpdated: new Date()
+      });
+    }
+
+    // Sort by usage percentage (highest first)
+    storageAnalytics.sort((a, b) => b.storage.usagePercent - a.storage.usagePercent);
+
+    const summary = {
+      totalTenants: tenants.length,
+      totalStorageGB: Math.round(totalStorageUsed * 1000) / 1000,
+      averageUsagePercent: Math.round(storageAnalytics.reduce((sum, t) => sum + t.storage.usagePercent, 0) / tenants.length),
+      tenantsOverLimit: totalOverages,
+      totalOverageRevenue: Math.round(totalRevenue * 100) / 100,
+      generatedAt: new Date()
+    };
+
+    res.status(200).json({
+      summary,
+      tenants: storageAnalytics
+    });
+  } catch (error) {
+    console.error('Admin storage overview error:', error);
+    res.status(500).json({ message: 'Failed to generate storage overview' });
+  }
+});
+
+// Admin: Get detailed tenant storage breakdown
+app.get('/api/admin/storage/tenant/:tenantId', async (req: Request, res: Response) => {
+  try {
+    const { tenantId } = req.params;
+    const tenant = await Tenant.findById(tenantId);
+    if (!tenant) {
+      return res.status(404).json({ message: 'Tenant not found' });
+    }
+
+    // Get MongoDB items
+    const mongoItems = await KnowledgeItem.find({ tenantId }).sort({ createdAt: -1 });
+    
+    // Get legacy items
+    const legacyData = await readDatabase();
+    const legacyItems = legacyData.knowledgeBank[tenantId] || [];
+
+    const itemDetails = [];
+    
+    // Process MongoDB items
+    for (const item of mongoItems) {
+      const contentSize = item.content ? Buffer.byteLength(item.content, 'utf8') : 0;
+      const transcriptionSize = item.transcription?.text ? Buffer.byteLength(item.transcription.text, 'utf8') : 0;
+      const analysisSize = item.analysis?.summary ? Buffer.byteLength(item.analysis.summary, 'utf8') : 0;
+      const totalSize = contentSize + transcriptionSize + analysisSize + 200;
+
+      itemDetails.push({
+        id: item._id,
+        title: item.title,
+        source: 'mongodb',
+        size: {
+          totalBytes: totalSize,
+          totalKB: Math.round(totalSize / 1024 * 100) / 100,
+          breakdown: {
+            content: Math.round(contentSize / 1024 * 100) / 100,
+            transcription: Math.round(transcriptionSize / 1024 * 100) / 100,
+            analysis: Math.round(analysisSize / 1024 * 100) / 100,
+            metadata: 0.2
+          }
+        },
+        createdAt: item.createdAt,
+        category: item.category || 'general'
+      });
+    }
+
+    // Process legacy items
+    for (const item of legacyItems) {
+      const itemSize = Buffer.byteLength(JSON.stringify(item), 'utf8') + 150;
+      itemDetails.push({
+        id: item.id,
+        title: item.title || 'Untitled',
+        source: 'legacy',
+        size: {
+          totalBytes: itemSize,
+          totalKB: Math.round(itemSize / 1024 * 100) / 100,
+          breakdown: {
+            content: Math.round(itemSize / 1024 * 100) / 100,
+            transcription: 0,
+            analysis: 0,
+            metadata: 0.15
+          }
+        },
+        createdAt: new Date(), // Legacy items don't have timestamps
+        category: 'legacy'
+      });
+    }
+
+    // Sort by size (largest first)
+    itemDetails.sort((a, b) => b.size.totalBytes - a.size.totalBytes);
+
+    const totalSize = itemDetails.reduce((sum, item) => sum + item.size.totalBytes, 0);
+    const { SUBSCRIPTION_TIERS } = require('./models/index');
+    const tierData = SUBSCRIPTION_TIERS[tenant.subscription?.tier || 'STARTER'];
+
+    res.status(200).json({
+      tenant: {
+        id: tenant._id,
+        name: tenant.name,
+        companyCode: tenant.companyCode,
+        tier: tenant.subscription?.tier || 'STARTER'
+      },
+      storage: {
+        totalBytes: totalSize,
+        totalMB: Math.round(totalSize / 1024 / 1024 * 100) / 100,
+        totalGB: Math.round(totalSize / 1024 / 1024 / 1024 * 1000) / 1000,
+        limitGB: tierData.storageGB,
+        usagePercent: Math.round((totalSize / 1024 / 1024) / (tierData.storageGB * 1024) * 100)
+      },
+      itemCount: {
+        total: itemDetails.length,
+        mongodb: mongoItems.length,
+        legacy: legacyItems.length
+      },
+      items: itemDetails.slice(0, 50) // Limit to top 50 items for performance
+    });
+  } catch (error) {
+    console.error('Tenant storage details error:', error);
+    res.status(500).json({ message: 'Failed to get tenant storage details' });
+  }
+});
+
+// Admin: Storage cleanup and optimization
+app.post('/api/admin/storage/cleanup', async (req: Request, res: Response) => {
+  try {
+    const { tenantId, action } = req.body; // action: 'analyze' | 'cleanup' | 'migrate'
+    
+    if (action === 'analyze') {
+      // Analyze potential savings
+      const tenant = await Tenant.findById(tenantId);
+      const mongoItems = await KnowledgeItem.find({ tenantId });
+      
+      let duplicates = 0;
+      let emptyItems = 0;
+      let potentialSavings = 0;
+      
+      // Simple duplicate detection by title
+      const titles = mongoItems.map(item => item.title);
+      const uniqueTitles = new Set(titles);
+      duplicates = titles.length - uniqueTitles.size;
+      
+      // Count empty items
+      emptyItems = mongoItems.filter(item => !item.content || item.content.trim().length < 10).length;
+      
+      // Estimate potential savings (rough calculation)
+      potentialSavings = (duplicates + emptyItems) * 1024; // Bytes
+      
+      res.status(200).json({
+        analysis: {
+          totalItems: mongoItems.length,
+          duplicates,
+          emptyItems,
+          potentialSavingsBytes: potentialSavings,
+          potentialSavingsKB: Math.round(potentialSavings / 1024)
+        },
+        recommendations: [
+          duplicates > 0 ? `Remove ${duplicates} duplicate items` : null,
+          emptyItems > 0 ? `Clean up ${emptyItems} empty items` : null,
+          'Consider migrating to Google Cloud Storage for better performance'
+        ].filter(Boolean)
+      });
+    }
+    
+    res.status(200).json({ message: 'Storage analysis completed' });
+  } catch (error) {
+    console.error('Storage cleanup error:', error);
+    res.status(500).json({ message: 'Failed to perform storage cleanup' });
+  }
+});
+
+// --- FILE UPLOAD ENDPOINTS ---
+
+// Upload file endpoint (requires multer for file handling)
+app.post('/api/files/upload/:tenantId', async (req: Request, res: Response) => {
+  try {
+    // Note: This is a placeholder - you'll need to add multer middleware for actual file uploads
+    // For now, we'll create a simple text file upload endpoint
+    const { tenantId } = req.params;
+    const { fileName, content, contentType = 'text/plain' } = req.body;
+    
+    if (!fileName || !content) {
+      return res.status(400).json({ message: 'fileName and content are required' });
+    }
+
+    // Convert content to buffer
+    const buffer = Buffer.from(content, 'utf8');
+    
+    // For now, we'll store this as a knowledge item until Google Cloud Storage is fully set up
+    const newItem = new KnowledgeItem({
+      tenantId,
+      title: fileName,
+      content,
+      category: 'uploaded-file',
+      createdBy: req.body.userId || null, // You'll need to get this from auth middleware
+      metadata: {
+        source: 'file-upload',
+        contentType,
+        size: buffer.length
+      }
+    });
+    
+    await newItem.save();
+    
+    res.status(201).json({
+      message: 'File uploaded successfully',
+      file: {
+        id: newItem._id,
+        fileName,
+        size: buffer.length,
+        contentType,
+        uploadedAt: newItem.createdAt
+      }
+    });
+  } catch (error) {
+    console.error('File upload error:', error);
+    res.status(500).json({ message: 'Failed to upload file' });
+  }
+});
+
+// List files for tenant
+app.get('/api/files/:tenantId', async (req: Request, res: Response) => {
+  try {
+    const { tenantId } = req.params;
+    
+    // Get files from knowledge items (temporary until cloud storage migration)
+    const fileItems = await KnowledgeItem.find({
+      tenantId,
+      category: 'uploaded-file'
+    }).select('title createdAt metadata').sort({ createdAt: -1 });
+
+    const files = fileItems.map(item => ({
+      id: item._id,
+      name: item.title,
+      size: item.metadata?.size || 0,
+      contentType: item.metadata?.contentType || 'text/plain',
+      uploadedAt: item.createdAt,
+      category: 'documents'
+    }));
+
+    res.status(200).json({ files });
+  } catch (error) {
+    console.error('File list error:', error);
+    res.status(500).json({ message: 'Failed to list files' });
+  }
 });
 
 // Get usage statistics for tenant
