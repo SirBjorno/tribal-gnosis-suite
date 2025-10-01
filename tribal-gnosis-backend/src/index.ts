@@ -1024,12 +1024,23 @@ app.post('/api/admin/storage/cleanup', async (req: Request, res: Response) => {
       let potentialSavings = 0;
       
       // Simple duplicate detection by title
-      const titles = mongoItems.map(item => item.title);
-      const uniqueTitles = new Set(titles);
-      duplicates = titles.length - uniqueTitles.size;
+      const titleSet = new Set<string>();
+      let totalTitles = 0;
+      mongoItems.forEach(item => {
+        if (item.title) {
+          titleSet.add(String(item.title));
+          totalTitles++;
+        }
+      });
+      duplicates = totalTitles - titleSet.size;
       
       // Count empty items
-      emptyItems = mongoItems.filter(item => !item.content || item.content.trim().length < 10).length;
+      mongoItems.forEach(item => {
+        const content = String(item.content || '');
+        if (!content || content.trim().length < 10) {
+          emptyItems++;
+        }
+      });
       
       // Estimate potential savings (rough calculation)
       potentialSavings = (duplicates + emptyItems) * 1024; // Bytes
@@ -1117,14 +1128,18 @@ app.get('/api/files/:tenantId', async (req: Request, res: Response) => {
       category: 'uploaded-file'
     }).select('title createdAt metadata').sort({ createdAt: -1 });
 
-    const files = fileItems.map(item => ({
-      id: item._id,
-      name: item.title,
-      size: (item.metadata as any)?.size || 0,
-      contentType: (item.metadata as any)?.contentType || 'text/plain',
-      uploadedAt: item.createdAt,
-      category: 'documents'
-    }));
+    const files: any[] = [];
+    fileItems.forEach(item => {
+      const metadata = item.metadata as any;
+      files.push({
+        id: item._id,
+        name: item.title,
+        size: metadata?.size || 0,
+        contentType: metadata?.contentType || 'text/plain',
+        uploadedAt: item.createdAt,
+        category: 'documents'
+      });
+    });
 
     res.status(200).json({ files });
   } catch (error) {
