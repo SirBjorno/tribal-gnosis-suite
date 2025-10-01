@@ -312,7 +312,7 @@ app.post('/api/auth/signup', authLimiter, async (req: Request, res: Response) =>
 app.post('/api/auth/login', 
     authLimiter,
     [
-        body('email').isEmail().normalizeEmail().withMessage('Must be a valid email address'),
+        body('email').isEmail().withMessage('Must be a valid email address'),
         body('password').notEmpty().withMessage('Password is required'),
     ],
     handleValidationErrors,
